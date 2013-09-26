@@ -1,6 +1,6 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
-import br.gov.frameworkdemoiselle.digest.SHA256DigestCalculator;
+import br.gov.frameworkdemoiselle.timestamp.digest.SHA256DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import java.io.ByteArrayInputStream;
 import java.io.File;

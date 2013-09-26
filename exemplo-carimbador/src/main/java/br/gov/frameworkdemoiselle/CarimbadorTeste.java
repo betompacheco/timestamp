@@ -1,6 +1,6 @@
 package br.gov.frameworkdemoiselle;
 
-import br.gov.frameworkdemoiselle.digest.SHA1DigestCalculator;
+import br.gov.frameworkdemoiselle.timestamp.digest.SHA1DigestCalculator;
 import java.io.*;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;

@@ -1,4 +1,4 @@
-package br.gov.frameworkdemoiselle.digest;
+package br.gov.frameworkdemoiselle.timestamp.digest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
