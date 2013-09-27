@@ -6,7 +6,7 @@ import java.io.InputStream;
  *
  * @author 07721825741
  */
-public interface IConnector {
+public interface Connector {
 
     InputStream connect(byte[] conteudo);
 }

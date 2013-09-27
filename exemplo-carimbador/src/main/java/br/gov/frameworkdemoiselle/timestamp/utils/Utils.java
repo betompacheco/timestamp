@@ -1,5 +1,13 @@
 package br.gov.frameworkdemoiselle.timestamp.utils;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 /**
  *
  * @author 07721825741
@@ -22,5 +30,48 @@ public class Utils {
         buffer[3] = (byte) (valor & 0xff);
 
         return buffer;
+    }
+
+    /**
+     * Carrega o conteudo de um arquivo do disco
+     *
+     * @param arquivo Caminho do arquivo
+     * @return Os bytes do arquivo
+     */
+    public static byte[] readContent(String arquivo) {
+        byte[] result = null;
+        try {
+            File file = new File(arquivo);
+            InputStream is = new FileInputStream(file);
+            result = new byte[(int) file.length()];
+            is.read(result);
+            is.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    /**
+     * Escreve um conjunto de bytes em disco
+     *
+     * @param conteudo O conteudo a ser escrito em disco
+     * @param arquivo O caminho e nome do arquivo
+     */
+    public static void writeContent(byte[] conteudo, String arquivo) {
+
+        try {
+            File file = new File(arquivo);
+            OutputStream os = new FileOutputStream(file);
+            os.write(conteudo);
+            os.flush();
+            os.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

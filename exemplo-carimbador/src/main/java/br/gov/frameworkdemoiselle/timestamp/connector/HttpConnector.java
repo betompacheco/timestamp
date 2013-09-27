@@ -10,7 +10,7 @@ import java.io.InputStream;
  *
  * @author 07721825741
  */
-public class SocketConnector implements Connector {
+public class HttpConnector implements Connector {
 
     @Override
     public InputStream connect(byte[] conteudo) {

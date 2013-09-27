@@ -1,6 +1,7 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
 import br.gov.frameworkdemoiselle.timestamp.digest.SHA256DigestCalculator;
+import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
@@ -22,7 +23,6 @@ import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
-import org.bouncycastle.tsp.TimeStampResponseGenerator;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.encoders.Base64;
 
@@ -35,18 +35,22 @@ public class Carimbador {
     private final static Logger logger = Logger.getLogger(Carimbador.class.getName());
 
     public static void main(String args[]) {
-        new Carimbador().carimbar();
+        new Carimbador().carimbar(null, null, null);
     }
 
-    public void carimbar() {
+    public void carimbar(byte[] content) {
+    }
+
+    public void carimbar(byte[] content, KeyStore ks, String a) {
         try {
+
+            String hostname = "act.serpro.gov.br";
+            int port = 318;
+
             Security.addProvider(new BouncyCastleProvider());
 
             logger.log(Level.INFO, "Iniciando pedido de carimbo de tempo");
             String CLIENT_PASSWORD = "G4bizinh4";
-
-            String hostname = "act.serpro.gov.br";
-            int port = 318;
 
             String token = "name = TokenPro\nlibrary = /usr/lib/libeTPkcs11.so";
             // convert String into InputStream e instancia o Token
@@ -71,14 +75,12 @@ public class Carimbador {
             byte request[] = timeStampRequest.getEncoded();
 
             logger.info("Efetuando a  assinatura do conteudo");
-            RequestSigner assinador = new RequestSigner();
-            byte[] signed = assinador.assinar(keystore, alias, CLIENT_PASSWORD.toCharArray(), request);
+            RequestSigner requestSigner = new RequestSigner();
+            byte[] signed = requestSigner.assinar(keystore, alias, CLIENT_PASSWORD.toCharArray(), request);
 
             logger.info("Escreve o request assinado em disco");
-            OutputStream fos = new FileOutputStream(new File("request.tsq"));
-            fos.write(signed);
-            fos.flush();
-            fos.close();
+            Utils.writeContent(signed, "request.tsq");
+
 
             logger.info("Envia a solicitacao para o servidor TSA");
             Socket socket = new Socket(hostname, port);
@@ -139,19 +141,36 @@ public class Carimbador {
             tamanho -= 1;
 
             // Lendo dados carimbo
-            byte[] carimboBytes = new byte[tamanho];
-            in.read(carimboBytes, 0, tamanho);
-
-
+            byte[] carimbo = new byte[tamanho];
+            in.read(carimbo, 0, tamanho);
 
             logger.info("Escreve o response assinado em disco");
-            OutputStream fosresp = new FileOutputStream(new File("response.tsr"));
-            fosresp.write(carimboBytes);
-            fosresp.flush();
-            fosresp.close();
+            Utils.writeContent(carimbo, "response.tsr");
 
-            TimeStampResponse response = new TimeStampResponse(carimboBytes);
+            TimeStampResponse response = new TimeStampResponse(carimbo);
             System.out.println("PKIStatus = " + response.getStatus());
+
+            switch (response.getStatus()) {
+                case 0: {
+                    logger.log(Level.INFO, PKIStatusEnum.granted.getMessage());
+                }
+                case 1: {
+                    logger.log(Level.INFO, PKIStatusEnum.grantedWithMods.getMessage());
+                }
+                case 2: {
+                    logger.log(Level.INFO, PKIStatusEnum.rejection.getMessage());
+                }
+                case 3: {
+                    logger.log(Level.INFO, PKIStatusEnum.waiting.getMessage());
+                }
+                case 4: {
+                    logger.log(Level.INFO, PKIStatusEnum.revocationWarning.getMessage());
+                }
+                case 5: {
+                    logger.log(Level.INFO, PKIStatusEnum.revocationNotification.getMessage());
+                }
+            }
+
             response.validate(timeStampRequest);
 
             TimeStampToken timeStampToken = response.getTimeStampToken();
