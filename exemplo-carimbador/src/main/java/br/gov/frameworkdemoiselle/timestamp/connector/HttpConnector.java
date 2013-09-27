@@ -13,7 +13,7 @@ import java.io.InputStream;
 public class HttpConnector implements Connector {
 
     @Override
-    public InputStream connect(byte[] conteudo) {
+    public InputStream connect(byte[] content, String hostname, int port) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
