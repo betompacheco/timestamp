@@ -2,7 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.gov.frameworkdemoiselle.connector;
+package br.gov.frameworkdemoiselle.timestamp.connector;
+
+import java.io.InputStream;
 
 /**
  *
@@ -11,7 +13,7 @@ package br.gov.frameworkdemoiselle.connector;
 public class SocketConnector implements IConnector {
 
     @Override
-    public void connect(byte[] conteudo) {
+    public InputStream connect(byte[] conteudo) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }
