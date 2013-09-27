@@ -10,12 +10,12 @@ package br.gov.frameworkdemoiselle.timestamp.messages;
  */
 public enum PKIStatusEnum {
 
-    granted(0, "Texto"),
-    grantedWithMods(1, ""),
-    rejection(2, ""),
-    waiting(3, ""),
-    revocationWarning(4, ""),
-    revocationNotification(5, "");
+    granted(0, "Granted"),
+    grantedWithMods(1, "Granted With Mods"),
+    rejection(2, "Rejection"),
+    waiting(3, "Waiting"),
+    revocationWarning(4, "Revocation Warning"),
+    revocationNotification(5, "Revocation Notification");
     private int id;
     private String message;
 

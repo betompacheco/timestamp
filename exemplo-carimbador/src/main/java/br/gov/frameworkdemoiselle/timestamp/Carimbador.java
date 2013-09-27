@@ -2,6 +2,7 @@ package br.gov.frameworkdemoiselle.timestamp;
 
 import br.gov.frameworkdemoiselle.timestamp.digest.SHA256DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
+import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -89,7 +90,7 @@ public class Carimbador {
             // INICIO DA ALTERACAO NA LEITURA DE DADOS
             logger.info("Escrevendo no socket");
             // A "direct TCP-based TSA message" consists of:length (32-bits), flag (8-bits), value
-            out.write(intToByteArray(1 + signed.length));
+            out.write(Utils.intToByteArray(1 + signed.length));
             out.write(0x00);
             out.write(signed);
             out.flush();
@@ -178,23 +179,5 @@ public class Carimbador {
      */
     public boolean validar() {
         return false;
-    }
-
-    /**
-     * Efetua a conversao para Big Endian de acordo com a especificacao RFC 3161
-     *
-     * @param valor
-     * @return
-     */
-    public static byte[] intToByteArray(int valor) {
-        byte buffer[] = new byte[4];
-
-        // PROTOCOLO RFC 3161 - formato big-endian da JVM
-        buffer[0] = (byte) (valor >> 24 & 0xff);
-        buffer[1] = (byte) (valor >> 16 & 0xff);
-        buffer[2] = (byte) (valor >> 8 & 0xff);
-        buffer[3] = (byte) (valor & 0xff);
-
-        return buffer;
     }
 }
