@@ -11,7 +11,7 @@ package br.gov.frameworkdemoiselle.connector;
 public class SocketConnector implements IConnector {
 
     @Override
-    public void connect() {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void connect(byte[] conteudo) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

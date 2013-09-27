@@ -21,6 +21,7 @@ import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.bouncycastle.tsp.TimeStampResponseGenerator;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.encoders.Base64;
 
@@ -172,6 +173,19 @@ public class Carimbador {
         }
     }
 
+    /**
+     * Valida um carimbo de tempo
+     */
+    public boolean validar() {
+        return false;
+    }
+
+    /**
+     * Efetua a conversao para Big Endian de acordo com a especificacao RFC 3161
+     *
+     * @param valor
+     * @return
+     */
     public static byte[] intToByteArray(int valor) {
         byte buffer[] = new byte[4];
 

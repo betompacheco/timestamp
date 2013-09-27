@@ -1,6 +1,6 @@
 package br.gov.frameworkdemoiselle;
 
-import br.gov.frameworkdemoiselle.utils.Utils;
+import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
