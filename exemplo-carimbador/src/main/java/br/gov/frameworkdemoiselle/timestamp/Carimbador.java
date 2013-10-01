@@ -5,8 +5,7 @@ import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -33,6 +32,9 @@ import org.bouncycastle.util.encoders.Base64;
 public class Carimbador {
 
     private final static Logger logger = Logger.getLogger(Carimbador.class.getName());
+    Socket socket = null;
+    OutputStream outputStream = null;
+    InputStream inputStream = null;
 
     public static void main(String args[]) {
         new Carimbador().carimbar(null, null, null);
@@ -83,28 +85,28 @@ public class Carimbador {
 
 
             logger.info("Envia a solicitacao para o servidor TSA");
-            Socket socket = new Socket(hostname, port);
+            socket = new Socket(hostname, port);
             logger.log(Level.INFO, "Conectado? {0}", socket.isConnected());
 
             logger.info("Escrevendo no socket");
-            OutputStream out = socket.getOutputStream();
+            outputStream = socket.getOutputStream();
 
             // INICIO DA ALTERACAO NA LEITURA DE DADOS
             logger.info("Escrevendo no socket");
             // A "direct TCP-based TSA message" consists of:length (32-bits), flag (8-bits), value
-            out.write(Utils.intToByteArray(1 + signed.length));
-            out.write(0x00);
-            out.write(signed);
-            out.flush();
+            outputStream.write(Utils.intToByteArray(1 + signed.length));
+            outputStream.write(0x00);
+            outputStream.write(signed);
+            outputStream.flush();
 
             logger.info("Obtendo o response");
-            InputStream in = socket.getInputStream();
+            inputStream = socket.getInputStream();
 
             long tempo;
             // Valor do timeout da verificacao de dados disponiveis para leitura
             int timeOut = 3500;
             // Verificando se os 4 bytes iniciais estao disponiveis para leitura
-            for (tempo = System.currentTimeMillis() + timeOut; in.available() < 4 && System.currentTimeMillis() < tempo;) {
+            for (tempo = System.currentTimeMillis() + timeOut; inputStream.available() < 4 && System.currentTimeMillis() < tempo;) {
                 try {
                     Thread.sleep(1L);
                 } catch (InterruptedException e) {
@@ -114,13 +116,13 @@ public class Carimbador {
 
             // Lendo tamanho total
             byte[] tamanhoRetorno = new byte[4];
-            in.read(tamanhoRetorno, 0, 4);
+            inputStream.read(tamanhoRetorno, 0, 4);
             int tamanho = new BigInteger(tamanhoRetorno).intValue();
             System.out.println("Tamanho total = " + tamanho);
 
             // Verificando se os bytes na quantidade "tamanho" estao disponiveis
             if (System.currentTimeMillis() < tempo) {
-                while (in.available() < tamanho && System.currentTimeMillis() < tempo) {
+                while (inputStream.available() < tamanho && System.currentTimeMillis() < tempo) {
                     try {
                         Thread.sleep(1L);
                     } catch (InterruptedException e) {
@@ -136,13 +138,13 @@ public class Carimbador {
 
             // Lendo flag
             byte[] flagRetorno = new byte[1];
-            in.read(flagRetorno, 0, 1);
+            inputStream.read(flagRetorno, 0, 1);
             // tamanho total menos o tamanho da flag
             tamanho -= 1;
 
             // Lendo dados carimbo
             byte[] carimbo = new byte[tamanho];
-            in.read(carimbo, 0, tamanho);
+            inputStream.read(carimbo, 0, tamanho);
 
             logger.info("Escreve o response assinado em disco");
             Utils.writeContent(carimbo, "response.tsr");
@@ -184,12 +186,19 @@ public class Carimbador {
             }
             // FIM DA ALTERACAO
 
-            out.close();
-            in.close();
-            socket.close();
+
 
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                outputStream.close();
+                inputStream.close();
+                socket.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
         }
     }
 
