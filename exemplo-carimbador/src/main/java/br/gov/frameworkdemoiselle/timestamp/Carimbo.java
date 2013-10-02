@@ -60,7 +60,7 @@ public class Carimbo {
         StringBuilder builder = new StringBuilder();
         builder.append("Data e hora = ").append(this.getCarimbo()).append("\n");
         builder.append("Politica = ").append(this.getPolitica()).append("\n");
-        builder.append("Serial = ").append(this.getPolitica()).append("\n");
+        builder.append("Serial = ").append(this.getNumeroSerie()).append("\n");
         builder.append("Certificado DN = ").append(this.getTSA()).append("\n");
         builder.append("Hash Algorithm = ").append(this.getAlgoritmoDoHash()).append("\n");
         builder.append("Message Imprint Digest (Hex) = ").append(this.getMessageImprintDigestHex()).append("\n");

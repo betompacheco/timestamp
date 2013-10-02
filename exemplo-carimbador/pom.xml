@@ -37,20 +37,10 @@
             <artifactId>bcpkix-jdk15on</artifactId>
             <version>1.49</version>
         </dependency>
-        <dependency>
-            <groupId>br.gov.frameworkdemoiselle.component</groupId>
-            <artifactId>demoiselle-certificate-signer</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>br.gov.frameworkdemoiselle.component</groupId>
-            <artifactId>demoiselle-certificate-ca-icpbrasil</artifactId>
-            <version>1.0.2-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
     <build>
-        <finalName>exemplo-carimbador</finalName>
+        <!--<finalName>exemplo-carimbador</finalName>-->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
