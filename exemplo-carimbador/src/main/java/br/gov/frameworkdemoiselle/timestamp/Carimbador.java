@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.Security;
 import java.util.logging.Level;
@@ -36,37 +38,44 @@ public class Carimbador {
     OutputStream outputStream = null;
     InputStream inputStream = null;
 
-    public static void main(String args[]) {
-        new Carimbador().carimbar(null, null, null);
+    public static void main(String args[]) throws Exception {
+
+        String CLIENT_PASSWORD = "G4bizinh4";
+
+        String token = "name = TokenPro\nlibrary = /usr/lib/libeTPkcs11.so";
+        InputStream is = new ByteArrayInputStream(token.getBytes());
+        Provider provider = new sun.security.pkcs11.SunPKCS11(is);
+        Security.addProvider(provider);
+
+        KeyStore keystore = KeyStore.getInstance("PKCS11", "SunPKCS11-TokenPro");
+        keystore.load(is, CLIENT_PASSWORD.toCharArray());
+        String alias = keystore.aliases().nextElement();
+
+        new Carimbador().carimbar("serpro".getBytes(), keystore, alias);
     }
 
     public void carimbar(byte[] content) {
     }
 
+    /**
+     *
+     * @param content o conteudo a ser carimbado
+     * @param ks O keystore contendo o certificado digital autorizado para
+     * utilizar o carimbador de tempo
+     * @param a O alias do certificado digital autorizado para utilizar o
+     * carimbador de tempo
+     */
     public void carimbar(byte[] content, KeyStore ks, String a) {
         try {
-
-            String hostname = "act.serpro.gov.br";
-            int port = 318;
-
-            Security.addProvider(new BouncyCastleProvider());
+            final String hostname = "act.serpro.gov.br";
+            final int port = 318;
 
             logger.log(Level.INFO, "Iniciando pedido de carimbo de tempo");
-            String CLIENT_PASSWORD = "G4bizinh4";
-
-            String token = "name = TokenPro\nlibrary = /usr/lib/libeTPkcs11.so";
-            // convert String into InputStream e instancia o Token
-            InputStream is = new ByteArrayInputStream(token.getBytes());
-            Provider provider = new sun.security.pkcs11.SunPKCS11(is);
-            Security.addProvider(provider);
-
-            KeyStore keystore = KeyStore.getInstance("PKCS11", "SunPKCS11-TokenPro");
-            keystore.load(is, CLIENT_PASSWORD.toCharArray());
-            String alias = keystore.aliases().nextElement();
+            Security.addProvider(new BouncyCastleProvider());
 
             logger.log(Level.INFO, "Gerando o digest do conteudo");
             DigestCalculator digestCalculator = new SHA256DigestCalculator();
-            digestCalculator.getOutputStream().write("serpro".getBytes());
+            digestCalculator.getOutputStream().write(content);
             byte[] hashedMessage = digestCalculator.getDigest();
             logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
 
@@ -78,7 +87,7 @@ public class Carimbador {
 
             logger.info("Efetuando a  assinatura do conteudo");
             RequestSigner requestSigner = new RequestSigner();
-            byte[] signed = requestSigner.assinar(keystore, alias, CLIENT_PASSWORD.toCharArray(), request);
+            byte[] signed = requestSigner.assinar(ks, a, null, request);
 
             logger.info("Escreve o request assinado em disco");
             Utils.writeContent(signed, "request.tsq");
