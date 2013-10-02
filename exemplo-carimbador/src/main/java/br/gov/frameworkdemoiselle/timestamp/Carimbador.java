@@ -2,6 +2,7 @@ package br.gov.frameworkdemoiselle.timestamp;
 
 import br.gov.frameworkdemoiselle.timestamp.digest.SHA256DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.exception.TimestampException;
+import br.gov.frameworkdemoiselle.timestamp.messages.PKIFailureInfoEnum;
 import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
@@ -66,7 +67,7 @@ public class Carimbador {
      * @param a O alias do certificado digital autorizado para utilizar o
      * carimbador de tempo
      */
-    public void carimbar(byte[] content, KeyStore ks, String a) {
+    public void carimbar(byte[] content, KeyStore ks, String a) throws TimestampException {
         try {
             final String hostname = "act.serpro.gov.br";
             final int port = 318;
@@ -82,7 +83,7 @@ public class Carimbador {
 
             logger.log(Level.INFO, "Montando a requisicao para o carimbador de tempo");
             TimeStampRequestGenerator timeStampRequestGenerator = new TimeStampRequestGenerator();
-            timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2.0"));
+            timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2"));
             TimeStampRequest timeStampRequest = timeStampRequestGenerator.generate(TSPAlgorithms.SHA256, hashedMessage, BigInteger.valueOf(100));
             byte request[] = timeStampRequest.getEncoded();
 
@@ -159,9 +160,43 @@ public class Carimbador {
             Utils.writeContent(carimbo, "response.tsr");
 
             TimeStampResponse response = new TimeStampResponse(carimbo);
-            logger.log(Level.INFO, "PKIStatus = {0}", response.getStatus());
 
-            logger.log(Level.INFO, "FailInfo = {0}", response.getFailInfo().intValue());
+            int failInfo = -1;
+
+            if (response.getFailInfo() != null) {
+                failInfo = Integer.parseInt(new String(response.getFailInfo().getBytes()));
+            }
+
+            logger.log(Level.INFO, "FailInfo = {0}", failInfo);
+
+            switch (failInfo) {
+                case 0:
+                    logger.log(Level.INFO, PKIFailureInfoEnum.badAlg.getMessage());
+                    break;
+                case 2:
+                    logger.log(Level.INFO, PKIFailureInfoEnum.badRequest.getMessage());
+                    break;
+                case 5:
+                    logger.log(Level.INFO, PKIFailureInfoEnum.badDataFormat.getMessage());
+                    break;
+                case 14:
+                    logger.log(Level.INFO, PKIFailureInfoEnum.timeNotAvailable.getMessage());
+                    break;
+                case 15:
+                    logger.log(Level.INFO, PKIFailureInfoEnum.unacceptedPolicy.getMessage());
+                    break;
+                case 16:
+                    logger.log(Level.INFO, PKIFailureInfoEnum.unacceptedExtension.getMessage());
+                    break;
+                case 17:
+                    logger.log(Level.INFO, PKIFailureInfoEnum.addInfoNotAvailable.getMessage());
+                    break;
+                case 25:
+                    logger.log(Level.INFO, PKIFailureInfoEnum.systemFailure.getMessage());
+                    break;
+            }
+
+            logger.log(Level.INFO, "PKIStatus = {0}", response.getStatus());
 
             switch (response.getStatus()) {
                 case 0: {
@@ -199,7 +234,7 @@ public class Carimbador {
                 logger.log(Level.INFO, "O Token retornou nulo.");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new TimestampException(e.getMessage(), e.getCause());
         } finally {
             try {
                 outputStream.close();
