@@ -60,7 +60,6 @@ public class Utils {
      * @param arquivo O caminho e nome do arquivo
      */
     public static void writeContent(byte[] conteudo, String arquivo) {
-
         try {
             File file = new File(arquivo);
             OutputStream os = new FileOutputStream(file);

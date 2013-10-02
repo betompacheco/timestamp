@@ -1,9 +1,7 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.TimeZone;
-import java.util.logging.Level;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
@@ -45,7 +43,7 @@ public class Carimbo {
      *
      * @return os atributos do certificado da TSA
      */
-    public String getTSA() {
+    public String getAutoridadeCarimboTempo() {
         return timeStampToken.getTimeStampInfo().getTsa().toString();
     }
 
@@ -61,7 +59,7 @@ public class Carimbo {
         builder.append("Data e hora = ").append(this.getCarimbo()).append("\n");
         builder.append("Politica = ").append(this.getPolitica()).append("\n");
         builder.append("Serial = ").append(this.getNumeroSerie()).append("\n");
-        builder.append("Certificado DN = ").append(this.getTSA()).append("\n");
+        builder.append("Certificado DN = ").append(this.getAutoridadeCarimboTempo()).append("\n");
         builder.append("Hash Algorithm = ").append(this.getAlgoritmoDoHash()).append("\n");
         builder.append("Message Imprint Digest (Hex) = ").append(this.getMessageImprintDigestHex()).append("\n");
         builder.append("Message Imprint Digest (Base64) = ").append(this.getMessageImprintDigestBase64()).append("\n");

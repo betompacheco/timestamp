@@ -8,5 +8,9 @@ import java.io.InputStream;
  */
 public interface Connector {
 
-    InputStream connect(byte[] content, String hostname, int port);
+    InputStream connect(byte[] content);
+
+    void setHostname(String hostname);
+
+    void SetPort(int port);
 }

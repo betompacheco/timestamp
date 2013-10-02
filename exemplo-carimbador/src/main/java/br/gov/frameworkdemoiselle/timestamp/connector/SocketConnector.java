@@ -20,9 +20,11 @@ import java.util.logging.Logger;
 public class SocketConnector implements Connector {
 
     private final static Logger logger = Logger.getLogger(SocketConnector.class.getName());
+    private String hostname = "";
+    private int port;
 
     @Override
-    public InputStream connect(byte[] content, String hostname, int port) {
+    public InputStream connect(byte[] content) {
         try {
 
             logger.info("Envia a solicitacao para o servidor TSA");
@@ -47,5 +49,15 @@ public class SocketConnector implements Connector {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    @Override
+    public void SetPort(int port) {
+        this.port = port;
     }
 }
