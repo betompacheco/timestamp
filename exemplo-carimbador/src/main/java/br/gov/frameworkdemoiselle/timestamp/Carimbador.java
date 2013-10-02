@@ -1,6 +1,7 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
 import br.gov.frameworkdemoiselle.timestamp.digest.SHA256DigestCalculator;
+import br.gov.frameworkdemoiselle.timestamp.exception.TimestampException;
 import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
@@ -11,8 +12,6 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.Socket;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchProviderException;
 import java.security.Provider;
 import java.security.Security;
 import java.util.logging.Level;
@@ -34,13 +33,15 @@ import org.bouncycastle.util.encoders.Base64;
 public class Carimbador {
 
     private final static Logger logger = Logger.getLogger(Carimbador.class.getName());
-    Socket socket = null;
-    OutputStream outputStream = null;
-    InputStream inputStream = null;
+    private Socket socket = null;
+    private OutputStream outputStream = null;
+    private InputStream inputStream = null;
+    private Carimbo c;
 
     public static void main(String args[]) throws Exception {
 
         String CLIENT_PASSWORD = "G4bizinh4";
+//        String CLIENT_PASSWORD = "Ju708410#";
 
         String token = "name = TokenPro\nlibrary = /usr/lib/libeTPkcs11.so";
         InputStream is = new ByteArrayInputStream(token.getBytes());
@@ -81,7 +82,7 @@ public class Carimbador {
 
             logger.log(Level.INFO, "Montando a requisicao para o carimbador de tempo");
             TimeStampRequestGenerator timeStampRequestGenerator = new TimeStampRequestGenerator();
-            timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2"));
+            timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2.0"));
             TimeStampRequest timeStampRequest = timeStampRequestGenerator.generate(TSPAlgorithms.SHA256, hashedMessage, BigInteger.valueOf(100));
             byte request[] = timeStampRequest.getEncoded();
 
@@ -127,7 +128,6 @@ public class Carimbador {
             byte[] tamanhoRetorno = new byte[4];
             inputStream.read(tamanhoRetorno, 0, 4);
             int tamanho = new BigInteger(tamanhoRetorno).intValue();
-            System.out.println("Tamanho total = " + tamanho);
 
             // Verificando se os bytes na quantidade "tamanho" estao disponiveis
             if (System.currentTimeMillis() < tempo) {
@@ -159,44 +159,45 @@ public class Carimbador {
             Utils.writeContent(carimbo, "response.tsr");
 
             TimeStampResponse response = new TimeStampResponse(carimbo);
-            System.out.println("PKIStatus = " + response.getStatus());
+            logger.log(Level.INFO, "PKIStatus = {0}", response.getStatus());
+
+            logger.log(Level.INFO, "FailInfo = {0}", response.getFailInfo().intValue());
 
             switch (response.getStatus()) {
                 case 0: {
                     logger.log(Level.INFO, PKIStatusEnum.granted.getMessage());
+                    break;
                 }
                 case 1: {
                     logger.log(Level.INFO, PKIStatusEnum.grantedWithMods.getMessage());
+                    throw new TimestampException(PKIStatusEnum.grantedWithMods.getMessage());
                 }
                 case 2: {
                     logger.log(Level.INFO, PKIStatusEnum.rejection.getMessage());
+                    throw new TimestampException(PKIStatusEnum.rejection.getMessage());
                 }
                 case 3: {
                     logger.log(Level.INFO, PKIStatusEnum.waiting.getMessage());
+                    throw new TimestampException(PKIStatusEnum.waiting.getMessage());
                 }
                 case 4: {
                     logger.log(Level.INFO, PKIStatusEnum.revocationWarning.getMessage());
+                    throw new TimestampException(PKIStatusEnum.revocationWarning.getMessage());
                 }
                 case 5: {
                     logger.log(Level.INFO, PKIStatusEnum.revocationNotification.getMessage());
+                    throw new TimestampException(PKIStatusEnum.revocationNotification.getMessage());
                 }
             }
-
             response.validate(timeStampRequest);
-
             TimeStampToken timeStampToken = response.getTimeStampToken();
+            c = new Carimbo(timeStampToken);
+
             if (timeStampToken != null) {
-                logger.log(Level.INFO, "Data e hora = {0}", timeStampToken.getTimeStampInfo().getGenTime());
-                logger.log(Level.INFO, "Serial = {0}", timeStampToken.getTimeStampInfo().getSerialNumber());
-                logger.log(Level.INFO, "Certificado DN = {0}", timeStampToken.getTimeStampInfo().getTsa().toString());
-                logger.log(Level.INFO, "Hash Algorithm = {0}", timeStampToken.getTimeStampInfo().getHashAlgorithm().getAlgorithm());
+                logger.log(Level.INFO, c.toString());
             } else {
                 logger.log(Level.INFO, "O Token retornou nulo.");
             }
-            // FIM DA ALTERACAO
-
-
-
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -209,6 +210,10 @@ public class Carimbador {
             }
 
         }
+    }
+
+    public Carimbo getCarimbo() {
+        return c;
     }
 
     /**
