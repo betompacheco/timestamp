@@ -1,5 +1,6 @@
 package br.gov.frameworkdemoiselle;
 
+import br.gov.frameworkdemoiselle.timestamp.digest.DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.digest.SHA1DigestCalculator;
 import java.io.*;
 import java.math.BigInteger;
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
-import org.bouncycastle.operator.DigestCalculator;
+
 import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;

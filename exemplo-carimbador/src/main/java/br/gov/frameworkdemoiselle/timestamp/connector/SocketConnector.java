@@ -4,7 +4,6 @@
  */
 package br.gov.frameworkdemoiselle.timestamp.connector;
 
-import br.gov.frameworkdemoiselle.timestamp.Carimbador;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,18 +21,19 @@ public class SocketConnector implements Connector {
     private final static Logger logger = Logger.getLogger(SocketConnector.class.getName());
     private String hostname = "";
     private int port;
+    OutputStream out = null;
+    Socket socket = null;
 
     @Override
     public InputStream connect(byte[] content) {
         try {
-
             logger.info("Envia a solicitacao para o servidor TSA");
-            Socket socket = new Socket(hostname, port);
+            socket = new Socket(hostname, port);
 
             logger.log(Level.INFO, "Conectado? {0}", socket.isConnected());
 
             logger.info("Escrevendo no socket");
-            OutputStream out = socket.getOutputStream();
+            out = socket.getOutputStream();
 
             // INICIO DA ALTERACAO NA LEITURA DE DADOS
             logger.info("Escrevendo no socket");
@@ -47,6 +47,7 @@ public class SocketConnector implements Connector {
             return socket.getInputStream();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
         }
         return null;
     }
@@ -57,7 +58,18 @@ public class SocketConnector implements Connector {
     }
 
     @Override
-    public void SetPort(int port) {
+    public void setPort(int port) {
         this.port = port;
+    }
+
+    @Override
+    public void close() {
+        try {
+            socket.close();
+            out.close();
+        } catch (IOException ex) {
+            Logger.getLogger(SocketConnector.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 }

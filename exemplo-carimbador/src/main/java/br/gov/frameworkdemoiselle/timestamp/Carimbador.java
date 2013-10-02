@@ -1,5 +1,9 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
+import br.gov.frameworkdemoiselle.timestamp.connector.Connector;
+import br.gov.frameworkdemoiselle.timestamp.connector.SocketConnector;
+import br.gov.frameworkdemoiselle.timestamp.digest.DigestCalculator;
+import br.gov.frameworkdemoiselle.timestamp.digest.SHA1DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.digest.SHA256DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.exception.TimestampException;
 import br.gov.frameworkdemoiselle.timestamp.messages.PKIFailureInfoEnum;
@@ -19,7 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.operator.DigestCalculator;
+
 import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
@@ -53,21 +57,25 @@ public class Carimbador {
         keystore.load(is, CLIENT_PASSWORD.toCharArray());
         String alias = keystore.aliases().nextElement();
 
-        new Carimbador().carimbar("serpro".getBytes(), keystore, alias);
+        new Carimbador().carimbar("serpro".getBytes(), keystore, alias, new SHA256DigestCalculator());
     }
 
     public void carimbar(byte[] content) {
     }
 
+    public byte[] montaPedido() {
+        return null;
+    }
+
     /**
      *
-     * @param content o conteudo a ser carimbado
-     * @param ks O keystore contendo o certificado digital autorizado para
-     * utilizar o carimbador de tempo
-     * @param a O alias do certificado digital autorizado para utilizar o
-     * carimbador de tempo
+     * @param content
+     * @param ks
+     * @param a
+     * @param digestCalculator
+     * @throws TimestampException
      */
-    public void carimbar(byte[] content, KeyStore ks, String a) throws TimestampException {
+    public void carimbar(byte[] content, KeyStore ks, String a, DigestCalculator digestCalculator) throws TimestampException {
         try {
             final String hostname = "act.serpro.gov.br";
             final int port = 318;
@@ -76,7 +84,6 @@ public class Carimbador {
             Security.addProvider(new BouncyCastleProvider());
 
             logger.log(Level.INFO, "Gerando o digest do conteudo");
-            DigestCalculator digestCalculator = new SHA256DigestCalculator();
             digestCalculator.getOutputStream().write(content);
             byte[] hashedMessage = digestCalculator.getDigest();
             logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
@@ -94,24 +101,16 @@ public class Carimbador {
             logger.info("Escreve o request assinado em disco");
             Utils.writeContent(signed, "request.tsq");
 
-
             logger.info("Envia a solicitacao para o servidor TSA");
-            socket = new Socket(hostname, port);
-            logger.log(Level.INFO, "Conectado? {0}", socket.isConnected());
 
-            logger.info("Escrevendo no socket");
-            outputStream = socket.getOutputStream();
-
-            // INICIO DA ALTERACAO NA LEITURA DE DADOS
-            logger.info("Escrevendo no socket");
-            // A "direct TCP-based TSA message" consists of:length (32-bits), flag (8-bits), value
-            outputStream.write(Utils.intToByteArray(1 + signed.length));
-            outputStream.write(0x00);
-            outputStream.write(signed);
-            outputStream.flush();
+            Connector connector = new SocketConnector();
+            connector.setHostname("act.serpro.gov.br");
+            connector.setPort(318);
 
             logger.info("Obtendo o response");
-            inputStream = socket.getInputStream();
+            inputStream = connector.connect(signed);
+
+
 
             long tempo;
             // Valor do timeout da verificacao de dados disponiveis para leitura
@@ -233,17 +232,11 @@ public class Carimbador {
             } else {
                 logger.log(Level.INFO, "O Token retornou nulo.");
             }
+
+            connector.close();
+
         } catch (Exception e) {
             throw new TimestampException(e.getMessage(), e.getCause());
-        } finally {
-            try {
-                outputStream.close();
-                inputStream.close();
-                socket.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-
         }
     }
 

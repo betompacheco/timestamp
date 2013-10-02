@@ -23,7 +23,12 @@ public class HttpConnector implements Connector {
     }
 
     @Override
-    public void SetPort(int port) {
+    public void setPort(int port) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void close() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

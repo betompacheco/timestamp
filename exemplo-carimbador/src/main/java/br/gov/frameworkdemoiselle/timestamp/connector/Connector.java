@@ -10,7 +10,9 @@ public interface Connector {
 
     InputStream connect(byte[] content);
 
+    void close();
+
     void setHostname(String hostname);
 
-    void SetPort(int port);
+    void setPort(int port);
 }
