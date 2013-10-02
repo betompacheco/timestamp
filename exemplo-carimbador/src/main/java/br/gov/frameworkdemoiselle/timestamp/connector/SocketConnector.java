@@ -33,11 +33,8 @@ public class SocketConnector implements Connector {
             logger.log(Level.INFO, "Conectado? {0}", socket.isConnected());
 
             logger.info("Escrevendo no socket");
-            out = socket.getOutputStream();
-
-            // INICIO DA ALTERACAO NA LEITURA DE DADOS
-            logger.info("Escrevendo no socket");
             // A "direct TCP-based TSA message" consists of:length (32-bits), flag (8-bits), value
+            out = socket.getOutputStream();
             out.write(Utils.intToByteArray(1 + content.length));
             out.write(0x00);
             out.write(content);

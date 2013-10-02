@@ -3,7 +3,6 @@ package br.gov.frameworkdemoiselle.timestamp;
 import br.gov.frameworkdemoiselle.timestamp.connector.Connector;
 import br.gov.frameworkdemoiselle.timestamp.connector.SocketConnector;
 import br.gov.frameworkdemoiselle.timestamp.digest.DigestCalculator;
-import br.gov.frameworkdemoiselle.timestamp.digest.SHA1DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.digest.SHA256DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.exception.TimestampException;
 import br.gov.frameworkdemoiselle.timestamp.messages.PKIFailureInfoEnum;
@@ -11,7 +10,6 @@ import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -23,7 +21,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
@@ -38,8 +35,6 @@ import org.bouncycastle.util.encoders.Base64;
 public class Carimbador {
 
     private final static Logger logger = Logger.getLogger(Carimbador.class.getName());
-    private Socket socket = null;
-    private OutputStream outputStream = null;
     private InputStream inputStream = null;
     private Carimbo c;
 
@@ -77,11 +72,8 @@ public class Carimbador {
      */
     public void carimbar(byte[] content, KeyStore ks, String a, DigestCalculator digestCalculator) throws TimestampException {
         try {
-            final String hostname = "act.serpro.gov.br";
-            final int port = 318;
-
             logger.log(Level.INFO, "Iniciando pedido de carimbo de tempo");
-            Security.addProvider(new BouncyCastleProvider());
+//            Security.addProvider(new BouncyCastleProvider());
 
             logger.log(Level.INFO, "Gerando o digest do conteudo");
             digestCalculator.getOutputStream().write(content);
@@ -101,16 +93,12 @@ public class Carimbador {
             logger.info("Escreve o request assinado em disco");
             Utils.writeContent(signed, "request.tsq");
 
-            logger.info("Envia a solicitacao para o servidor TSA");
-
             Connector connector = new SocketConnector();
             connector.setHostname("act.serpro.gov.br");
             connector.setPort(318);
 
             logger.info("Obtendo o response");
             inputStream = connector.connect(signed);
-
-
 
             long tempo;
             // Valor do timeout da verificacao de dados disponiveis para leitura
