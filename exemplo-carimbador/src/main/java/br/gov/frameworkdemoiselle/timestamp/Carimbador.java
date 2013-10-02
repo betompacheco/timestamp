@@ -10,17 +10,15 @@ import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.math.BigInteger;
-import java.net.Socket;
 import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
@@ -37,9 +35,10 @@ public class Carimbador {
     private final static Logger logger = Logger.getLogger(Carimbador.class.getName());
     private InputStream inputStream = null;
     private Carimbo c;
+    private TimeStampRequest timeStampRequest;
+    private TimeStampResponse timeStampResponse;
 
     public static void main(String args[]) throws Exception {
-
         String CLIENT_PASSWORD = "G4bizinh4";
 //        String CLIENT_PASSWORD = "Ju708410#";
 
@@ -52,53 +51,61 @@ public class Carimbador {
         keystore.load(is, CLIENT_PASSWORD.toCharArray());
         String alias = keystore.aliases().nextElement();
 
-        new Carimbador().carimbar("serpro".getBytes(), keystore, alias, new SHA256DigestCalculator());
+        Carimbador carimbador = new Carimbador();
+
+        byte[] pedido = carimbador.montaPedido("serpro".getBytes(), keystore, alias, new SHA256DigestCalculator());
+
+        logger.info("Escreve o request assinado em disco");
+        Utils.writeContent(pedido, "request.tsq");
+
+        byte[] resposta = carimbador.carimbar(pedido);
+
+        logger.info("Escreve o response assinado em disco");
+        Utils.writeContent(resposta, "response.tsr");
+
+        logger.log(Level.INFO, carimbador.getCarimbo().toString());
     }
 
-    public void carimbar(byte[] content) {
+    public byte[] montaPedido(byte contet) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public byte[] montaPedido() {
-        return null;
+    public byte[] montaPedido(byte[] content, KeyStore ks, String a, DigestCalculator digestCalculator) throws TimestampException, IOException {
+        logger.log(Level.INFO, "Gerando o digest do conteudo");
+        digestCalculator.getOutputStream().write(content);
+        byte[] hashedMessage = digestCalculator.getDigest();
+        logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
+
+        logger.log(Level.INFO, "Montando a requisicao para o carimbador de tempo");
+        TimeStampRequestGenerator timeStampRequestGenerator = new TimeStampRequestGenerator();
+        timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2"));
+        timeStampRequest = timeStampRequestGenerator.generate(TSPAlgorithms.SHA256, hashedMessage, BigInteger.valueOf(100));
+        byte request[] = timeStampRequest.getEncoded();
+
+        logger.info("Efetuando a  assinatura do conteudo");
+        RequestSigner requestSigner = new RequestSigner();
+        byte[] signedRequest = requestSigner.assinar(ks, a, null, request);
+
+        return signedRequest;
     }
 
     /**
      *
-     * @param content
+     * @param request
      * @param ks
      * @param a
      * @param digestCalculator
      * @throws TimestampException
      */
-    public void carimbar(byte[] content, KeyStore ks, String a, DigestCalculator digestCalculator) throws TimestampException {
+    public byte[] carimbar(byte[] request) throws TimestampException {
         try {
             logger.log(Level.INFO, "Iniciando pedido de carimbo de tempo");
-//            Security.addProvider(new BouncyCastleProvider());
-
-            logger.log(Level.INFO, "Gerando o digest do conteudo");
-            digestCalculator.getOutputStream().write(content);
-            byte[] hashedMessage = digestCalculator.getDigest();
-            logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
-
-            logger.log(Level.INFO, "Montando a requisicao para o carimbador de tempo");
-            TimeStampRequestGenerator timeStampRequestGenerator = new TimeStampRequestGenerator();
-            timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2"));
-            TimeStampRequest timeStampRequest = timeStampRequestGenerator.generate(TSPAlgorithms.SHA256, hashedMessage, BigInteger.valueOf(100));
-            byte request[] = timeStampRequest.getEncoded();
-
-            logger.info("Efetuando a  assinatura do conteudo");
-            RequestSigner requestSigner = new RequestSigner();
-            byte[] signed = requestSigner.assinar(ks, a, null, request);
-
-            logger.info("Escreve o request assinado em disco");
-            Utils.writeContent(signed, "request.tsq");
-
             Connector connector = new SocketConnector();
             connector.setHostname("act.serpro.gov.br");
             connector.setPort(318);
 
             logger.info("Obtendo o response");
-            inputStream = connector.connect(signed);
+            inputStream = connector.connect(request);
 
             long tempo;
             // Valor do timeout da verificacao de dados disponiveis para leitura
@@ -143,15 +150,12 @@ public class Carimbador {
             byte[] carimbo = new byte[tamanho];
             inputStream.read(carimbo, 0, tamanho);
 
-            logger.info("Escreve o response assinado em disco");
-            Utils.writeContent(carimbo, "response.tsr");
-
-            TimeStampResponse response = new TimeStampResponse(carimbo);
+            timeStampResponse = new TimeStampResponse(carimbo);
 
             int failInfo = -1;
 
-            if (response.getFailInfo() != null) {
-                failInfo = Integer.parseInt(new String(response.getFailInfo().getBytes()));
+            if (timeStampResponse.getFailInfo() != null) {
+                failInfo = Integer.parseInt(new String(timeStampResponse.getFailInfo().getBytes()));
             }
 
             logger.log(Level.INFO, "FailInfo = {0}", failInfo);
@@ -183,9 +187,9 @@ public class Carimbador {
                     break;
             }
 
-            logger.log(Level.INFO, "PKIStatus = {0}", response.getStatus());
+            logger.log(Level.INFO, "PKIStatus = {0}", timeStampResponse.getStatus());
 
-            switch (response.getStatus()) {
+            switch (timeStampResponse.getStatus()) {
                 case 0: {
                     logger.log(Level.INFO, PKIStatusEnum.granted.getMessage());
                     break;
@@ -211,17 +215,16 @@ public class Carimbador {
                     throw new TimestampException(PKIStatusEnum.revocationNotification.getMessage());
                 }
             }
-            response.validate(timeStampRequest);
-            TimeStampToken timeStampToken = response.getTimeStampToken();
+            timeStampResponse.validate(timeStampRequest);
+            TimeStampToken timeStampToken = timeStampResponse.getTimeStampToken();
             c = new Carimbo(timeStampToken);
 
-            if (timeStampToken != null) {
-                logger.log(Level.INFO, c.toString());
-            } else {
-                logger.log(Level.INFO, "O Token retornou nulo.");
+            if (timeStampToken == null) {
+                throw new TimestampException("O Token retornou nulo.");
             }
-
             connector.close();
+
+            return carimbo;
 
         } catch (Exception e) {
             throw new TimestampException(e.getMessage(), e.getCause());
@@ -236,6 +239,6 @@ public class Carimbador {
      * Valida um carimbo de tempo
      */
     public boolean validar() {
-        return false;
+        throw new UnsupportedOperationException("Nao implementado ainda.");
     }
 }

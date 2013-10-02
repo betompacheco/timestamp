@@ -44,7 +44,6 @@ public class SocketConnector implements Connector {
             return socket.getInputStream();
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
         }
         return null;
     }
