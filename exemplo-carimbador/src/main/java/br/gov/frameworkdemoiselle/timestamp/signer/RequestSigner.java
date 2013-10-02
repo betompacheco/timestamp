@@ -38,7 +38,8 @@ public class RequestSigner {
 
             // Create the signed data object
             CMSProcessable data = new CMSProcessableByteArray(conteudo);
-            CMSSignedData signed = generator.generate(data, true, "SunPKCS11-TokenPro");
+            CMSSignedData signed = generator.generate(data, true, ks.getProvider());
+
             return signed.getEncoded();
 
         } catch (Exception e) {
