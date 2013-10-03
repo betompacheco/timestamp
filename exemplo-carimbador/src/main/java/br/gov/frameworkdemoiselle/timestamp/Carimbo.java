@@ -35,7 +35,7 @@ public class Carimbo {
     }
 
     public String getMessageImprintDigestHex() {
-        return Hex.toHexString(timeStampToken.getTimeStampInfo().getMessageImprintDigest());
+        return Hex.toHexString(timeStampToken.getTimeStampInfo().getMessageImprintDigest()).toUpperCase();
     }
 
     /**
