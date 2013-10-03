@@ -1,8 +1,12 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
 import java.text.SimpleDateFormat;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.TimeZone;
+import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -36,6 +40,22 @@ public class Carimbo {
 
     public String getMessageImprintDigestHex() {
         return Hex.toHexString(timeStampToken.getTimeStampInfo().getMessageImprintDigest()).toUpperCase();
+    }
+
+    public Store getCRLs() {
+        return timeStampToken.getCRLs();
+    }
+
+    public Store getCertificados() {
+        return timeStampToken.getCertificates();
+    }
+
+    public Map getAtributosAssinados() {
+        return timeStampToken.getSignedAttributes().toHashtable();
+    }
+
+    public Map getatributosNaoAssinados() {
+        return timeStampToken.getUnsignedAttributes().toHashtable();
     }
 
     /**
