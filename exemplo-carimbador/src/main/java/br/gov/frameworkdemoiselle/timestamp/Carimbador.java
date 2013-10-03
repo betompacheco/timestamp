@@ -10,22 +10,36 @@ import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
+import java.security.cert.CertificateException;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.cms.ContentInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSProcessable;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSTypedData;
+import org.bouncycastle.cms.SignerInformation;
+import org.bouncycastle.cms.SignerInformationStore;
+import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
+import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
 
 /**
@@ -53,30 +67,32 @@ public class Carimbador {
         keystore.load(is, CLIENT_PASSWORD.toCharArray());
         String alias = keystore.aliases().nextElement();
 
-        byte[] dados = Utils.readContent("/home/07721825741/drivers.config");
-
         Carimbador carimbador = new Carimbador();
 
-        byte[] pedido = carimbador.montaPedido(dados, keystore, alias, new SHA256DigestCalculator());
+//        byte[] dados = Utils.readContent("/home/07721825741/drivers.config");
+//
+//        byte[] pedido = carimbador.montaPedido(dados, keystore, alias, new SHA256DigestCalculator());
+//
+//        logger.info("Escreve o request assinado em disco");
+//        Utils.writeContent(pedido, "request.tsq");
+//
+//        byte[] resposta = carimbador.carimbar(pedido);
+//
+//        logger.info("Escreve o response assinado em disco");
+//        Utils.writeContent(resposta, "response.tsr");
 
-        logger.info("Escreve o request assinado em disco");
-        Utils.writeContent(pedido, "request.tsq");
-
-        byte[] resposta = carimbador.carimbar(pedido);
-
-        logger.info("Escreve o response assinado em disco");
-        Utils.writeContent(resposta, "response.tsr");
+        carimbador.validar(Utils.readContent("response.tsr"), null);
 
         logger.log(Level.INFO, carimbador.getCarimbo().toString());
     }
 
-    public byte[] montaPedido(byte contet) {
+    public byte[] montaPedido(byte content) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public byte[] montaPedido(byte[] content, KeyStore ks, String a, DigestCalculator digestCalculator) throws TimestampException, IOException {
+    public byte[] montaPedido(byte[] data, KeyStore ks, String a, DigestCalculator digestCalculator) throws TimestampException, IOException {
         logger.log(Level.INFO, "Gerando o digest do conteudo");
-        digestCalculator.getOutputStream().write(content);
+        digestCalculator.getOutputStream().write(data);
         byte[] hashedMessage = digestCalculator.getDigest();
         logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
 
@@ -235,15 +251,44 @@ public class Carimbador {
         }
     }
 
-    public Carimbo getCarimbo() {
-        return carimbo;
-    }
-
     /**
      * Valida um carimbo de tempo
      */
-    public boolean validar() throws TSPException {
-//        timeStampResponse.getTimeStampToken().get
-        throw new UnsupportedOperationException("Nao implementado ainda.");
+    public boolean validar(byte[] response, byte[] original) throws TSPException, IOException, CMSException, OperatorCreationException, CertificateException {
+
+        boolean validado = true;
+
+        Security.addProvider(new BouncyCastleProvider());
+
+        TimeStampResponse tsr = new TimeStampResponse(response);
+        TimeStampToken timeStampToken = tsr.getTimeStampToken();
+        CMSSignedData s = timeStampToken.toCMSSignedData();
+
+        int verified = 0;
+
+        Store certStore = s.getCertificates();
+        SignerInformationStore signers = s.getSignerInfos();
+        Collection c = signers.getSigners();
+        Iterator it = c.iterator();
+
+        while (it.hasNext()) {
+            SignerInformation signer = (SignerInformation) it.next();
+            Collection certCollection = certStore.getMatches(signer.getSID());
+
+            Iterator certIt = certCollection.iterator();
+            X509CertificateHolder cert = (X509CertificateHolder) certIt.next();
+
+            if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(cert))) {
+                verified++;
+            }
+        }
+
+        logger.log(Level.INFO, "verificados : {0}", verified);
+
+        return validado;
+    }
+
+    public Carimbo getCarimbo() {
+        return carimbo;
     }
 }
