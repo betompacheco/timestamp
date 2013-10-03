@@ -38,18 +38,12 @@ public class Utils {
      * @param arquivo Caminho do arquivo
      * @return Os bytes do arquivo
      */
-    public static byte[] readContent(String arquivo) {
-        byte[] result = null;
-        try {
-            File file = new File(arquivo);
-            InputStream is = new FileInputStream(file);
-            result = new byte[(int) file.length()];
-            is.read(result);
-            is.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public static byte[] readContent(String arquivo) throws FileNotFoundException, IOException {
+        File file = new File(arquivo);
+        InputStream is = new FileInputStream(file);
+        byte[] result = new byte[(int) file.length()];
+        is.read(result);
+        is.close();
         return result;
     }
 
@@ -59,18 +53,11 @@ public class Utils {
      * @param conteudo O conteudo a ser escrito em disco
      * @param arquivo O caminho e nome do arquivo
      */
-    public static void writeContent(byte[] conteudo, String arquivo) {
-        try {
-            File file = new File(arquivo);
-            OutputStream os = new FileOutputStream(file);
-            os.write(conteudo);
-            os.flush();
-            os.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+    public static void writeContent(byte[] conteudo, String arquivo) throws FileNotFoundException, IOException {
+        File file = new File(arquivo);
+        OutputStream os = new FileOutputStream(file);
+        os.write(conteudo);
+        os.flush();
+        os.close();
     }
 }
