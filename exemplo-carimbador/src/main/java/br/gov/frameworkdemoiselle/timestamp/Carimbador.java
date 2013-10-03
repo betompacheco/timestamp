@@ -10,6 +10,7 @@ import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -20,6 +21,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.tsp.TSPAlgorithms;
+import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
@@ -34,7 +36,7 @@ public class Carimbador {
 
     private final static Logger logger = Logger.getLogger(Carimbador.class.getName());
     private InputStream inputStream = null;
-    private Carimbo c;
+    private Carimbo carimbo;
     private TimeStampRequest timeStampRequest;
     private TimeStampResponse timeStampResponse;
 
@@ -51,9 +53,11 @@ public class Carimbador {
         keystore.load(is, CLIENT_PASSWORD.toCharArray());
         String alias = keystore.aliases().nextElement();
 
+        byte[] dados = Utils.readContent("/home/07721825741/drivers.config");
+
         Carimbador carimbador = new Carimbador();
 
-        byte[] pedido = carimbador.montaPedido("serpro".getBytes(), keystore, alias, new SHA256DigestCalculator());
+        byte[] pedido = carimbador.montaPedido(dados, keystore, alias, new SHA256DigestCalculator());
 
         logger.info("Escreve o request assinado em disco");
         Utils.writeContent(pedido, "request.tsq");
@@ -147,10 +151,10 @@ public class Carimbador {
             tamanho -= 1;
 
             // Lendo dados carimbo
-            byte[] carimbo = new byte[tamanho];
-            inputStream.read(carimbo, 0, tamanho);
+            byte[] carimboRetorno = new byte[tamanho];
+            inputStream.read(carimboRetorno, 0, tamanho);
 
-            timeStampResponse = new TimeStampResponse(carimbo);
+            timeStampResponse = new TimeStampResponse(carimboRetorno);
 
             int failInfo = -1;
 
@@ -217,14 +221,14 @@ public class Carimbador {
             }
             timeStampResponse.validate(timeStampRequest);
             TimeStampToken timeStampToken = timeStampResponse.getTimeStampToken();
-            c = new Carimbo(timeStampToken);
+            carimbo = new Carimbo(timeStampToken);
 
             if (timeStampToken == null) {
                 throw new TimestampException("O Token retornou nulo.");
             }
-            connector.close();
 
-            return carimbo;
+            connector.close();
+            return carimboRetorno;
 
         } catch (Exception e) {
             throw new TimestampException(e.getMessage(), e.getCause());
@@ -232,13 +236,14 @@ public class Carimbador {
     }
 
     public Carimbo getCarimbo() {
-        return c;
+        return carimbo;
     }
 
     /**
      * Valida um carimbo de tempo
      */
-    public boolean validar() {
+    public boolean validar() throws TSPException {
+//        timeStampResponse.getTimeStampToken().get
         throw new UnsupportedOperationException("Nao implementado ainda.");
     }
 }
