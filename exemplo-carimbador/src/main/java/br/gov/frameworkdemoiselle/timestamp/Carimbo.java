@@ -1,10 +1,9 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
+import java.math.BigInteger;
 import java.text.SimpleDateFormat;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.TimeZone;
-import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
@@ -67,7 +66,16 @@ public class Carimbo {
         return timeStampToken.getTimeStampInfo().getTsa().toString();
     }
 
-    public String getCarimbo() {
+    /**
+     * Retorna o valor "nonce", ou retorna nulo se nao existir nenhum
+     *
+     * @return o valor "nonce"
+     */
+    public BigInteger getNonce() {
+        return timeStampToken.getTimeStampInfo().getNonce();
+    }
+
+    public String getCarimbodeTempo() {
         SimpleDateFormat dateFormatGmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss:S z");
         dateFormatGmt.setTimeZone(TimeZone.getTimeZone("GMT"));
         return dateFormatGmt.format(timeStampToken.getTimeStampInfo().getGenTime());
@@ -76,7 +84,7 @@ public class Carimbo {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Data e hora = ").append(this.getCarimbo()).append("\n");
+        builder.append("Data e hora = ").append(this.getCarimbodeTempo()).append("\n");
         builder.append("Politica = ").append(this.getPolitica()).append("\n");
         builder.append("Serial = ").append(this.getNumeroSerie()).append("\n");
         builder.append("Certificado DN = ").append(this.getAutoridadeCarimboTempo()).append("\n");
