@@ -1,7 +1,8 @@
 package br.gov.frameworkdemoiselle;
 
-import br.gov.frameworkdemoiselle.timestamp.digest.DigestCalculator;
-import br.gov.frameworkdemoiselle.timestamp.digest.SHA1DigestCalculator;
+import br.gov.frameworkdemoiselle.certificate.criptography.Digest;
+import br.gov.frameworkdemoiselle.certificate.criptography.DigestAlgorithmEnum;
+import br.gov.frameworkdemoiselle.certificate.criptography.factory.DigestFactory;
 import java.io.*;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
@@ -39,10 +40,12 @@ public class CarimbadorTeste {
 //            timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("1.3.6.1.4.1.13762.3"));
             timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("1.2.3.4.5"));
 
-            DigestCalculator dc = new SHA1DigestCalculator();
-            dc.getOutputStream().write("teste".getBytes());
 
-            TimeStampRequest timeStampRequest = timeStampRequestGenerator.generate(TSPAlgorithms.SHA1, dc.getDigest(), BigInteger.valueOf(100));
+            Digest digest = DigestFactory.getInstance().factoryDefault();
+            digest.setAlgorithm(DigestAlgorithmEnum.SHA_1);
+            byte[] hashedMessage = digest.digest("teste".getBytes());
+
+            TimeStampRequest timeStampRequest = timeStampRequestGenerator.generate(TSPAlgorithms.SHA1, hashedMessage, BigInteger.valueOf(100));
             byte request[] = timeStampRequest.getEncoded();
 
             URL url = new URL(ocspUrl);

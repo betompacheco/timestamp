@@ -1,12 +1,14 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
+import br.gov.frameworkdemoiselle.certificate.criptography.Digest;
+import br.gov.frameworkdemoiselle.certificate.criptography.DigestAlgorithmEnum;
+import br.gov.frameworkdemoiselle.certificate.criptography.factory.DigestFactory;
 import br.gov.frameworkdemoiselle.timestamp.connector.Connector;
 import br.gov.frameworkdemoiselle.timestamp.connector.ConnectorFactory;
-import br.gov.frameworkdemoiselle.timestamp.digest.DigestCalculator;
 import br.gov.frameworkdemoiselle.timestamp.enumeration.ConnectionType;
-import br.gov.frameworkdemoiselle.timestamp.exception.TimestampException;
 import br.gov.frameworkdemoiselle.timestamp.enumeration.PKIFailureInfo;
 import br.gov.frameworkdemoiselle.timestamp.enumeration.PKIStatus;
+import br.gov.frameworkdemoiselle.timestamp.exception.TimestampException;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
@@ -17,6 +19,7 @@ import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -36,8 +39,6 @@ import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
-import org.bouncycastle.tsp.cms.CMSTimeStampedData;
-import org.bouncycastle.tsp.cms.CMSTimeStampedDataGenerator;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
 
@@ -57,32 +58,35 @@ public class TimestampGenerator {
         String CLIENT_PASSWORD = "G4bizinh4";
 //        String CLIENT_PASSWORD = "Ju708410#";
 
-        String token = "name = TokenPro\nlibrary = /usr/lib/libeTPkcs11.so";
-        InputStream is = new ByteArrayInputStream(token.getBytes());
-        Provider provider = new sun.security.pkcs11.SunPKCS11(is);
-        Security.addProvider(provider);
+        TimestampGenerator timestampGen = new TimestampGenerator();
 
-        KeyStore keystore = KeyStore.getInstance("PKCS11", "SunPKCS11-TokenPro");
-        keystore.load(is, CLIENT_PASSWORD.toCharArray());
-        String alias = keystore.aliases().nextElement();
+        byte[] original = Utils.readContent("/home/07721825741/texto.txt");
 
-        TimestampGenerator carimbador = new TimestampGenerator();
-
-//        byte[] dados = Utils.readContent("/home/07721825741/drivers.config");
+//        String token = "name = TokenPro\nlibrary = /usr/lib/libeTPkcs11.so";
+//        InputStream is = new ByteArrayInputStream(token.getBytes());
+//        Provider provider = new sun.security.pkcs11.SunPKCS11(is);
+//        Security.addProvider(provider);
 //
-//        byte[] pedido = carimbador.createRequest(dados, keystore, alias, new SHA256DigestCalculator());
+//        KeyStore keystore = KeyStore.getInstance("PKCS11", "SunPKCS11-TokenPro");
+//        keystore.load(is, CLIENT_PASSWORD.toCharArray());
+//        String alias = keystore.aliases().nextElement();
+//
+//        byte[] pedido = timestampGen.createRequest(original, keystore, alias, DigestAlgorithmEnum.SHA_256);
 //
 //        logger.info("Escreve o request assinado em disco");
-//        Utils.writeContent(pedido, "request.tsq");
+//        Utils.writeContent(pedido, "/home/07721825741/NetBeansProjects/timestamp/exemplo-carimbador/request.tsq");
 //
-//        byte[] resposta = carimbador.doTimestamp(pedido);
+//        byte[] resposta = timestampGen.doTimestamp(pedido, ConnectionType.SOCKET);
 //
 //        logger.info("Escreve o response assinado em disco");
-//        Utils.writeContent(resposta, "response.tsr");
+//        Utils.writeContent(resposta, "/home/07721825741/NetBeansProjects/timestamp/exemplo-carimbador/response.tsr");
 
-        carimbador.validate(Utils.readContent("response.tsr"), null);
+        //Efetua a validacao do Token
+        byte[] response = Utils.readContent("/home/07721825741/NetBeansProjects/timestamp/exemplo-carimbador/response.tsr");
 
-        logger.log(Level.INFO, carimbador.getTimestamp().toString());
+        timestampGen.validate(response, original);
+
+        logger.log(Level.INFO, timestampGen.getTimestamp().toString());
     }
 
     public byte[] createRequest(byte content) {
@@ -94,15 +98,16 @@ public class TimestampGenerator {
      * @param original
      * @param keystore
      * @param alias
-     * @param digestCalculator
+     * @param digestAlgorithm
      * @return
      * @throws TimestampException
      * @throws IOException
      */
-    public byte[] createRequest(byte[] original, KeyStore keystore, String alias, DigestCalculator digestCalculator) throws TimestampException, IOException {
+    public byte[] createRequest(byte[] original, KeyStore keystore, String alias, DigestAlgorithmEnum digestAlgorithm) throws TimestampException, IOException {
         logger.log(Level.INFO, "Gerando o digest do conteudo");
-        digestCalculator.getOutputStream().write(original);
-        byte[] hashedMessage = digestCalculator.getDigest();
+        Digest digest = DigestFactory.getInstance().factoryDefault();
+        digest.setAlgorithm(digestAlgorithm);
+        byte[] hashedMessage = digest.digest(original);;
         logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
 
         logger.log(Level.INFO, "Montando a requisicao para o carimbador de tempo");
@@ -270,7 +275,7 @@ public class TimestampGenerator {
      * @throws OperatorCreationException
      * @throws CertificateException
      */
-    public boolean validate(byte[] response, byte[] original) throws TSPException, IOException, CMSException, OperatorCreationException, CertificateException {
+    public boolean validate(byte[] response, byte[] original) throws TimestampException, TSPException, CMSException, OperatorCreationException, CertificateException, IOException {
 
         boolean validado = true;
 
@@ -298,12 +303,24 @@ public class TimestampGenerator {
             }
         }
 
-        CMSTimeStampedDataGenerator tsdg = new CMSTimeStampedDataGenerator();
-        CMSTimeStampedData tsd = tsdg.generate(timeStampToken);
-        logger.log(Level.INFO, new String(tsd.getEncoded()));
-
         logger.log(Level.INFO, "verificados : {0}", verified);
         timestamp = new Timestamp(timeStampToken);
+
+        //Valida o hash  incluso no carimbo de tempo com hash do arquivo carimbado
+        Digest digest = DigestFactory.getInstance().factoryDefault();
+        digest.setAlgorithm(DigestAlgorithmEnum.SHA_256);
+        digest.digest(original);
+
+        logger.log(Level.INFO, "Digest do Carimbo de Tempo:   {0}", Base64.toBase64String(timeStampToken.getTimeStampInfo().getMessageImprintDigest()));
+
+        logger.log(Level.INFO, "Digest do documento Original: {0}", Base64.toBase64String(digest.digest(original)));
+
+        if (Arrays.equals(digest.digest(original), timeStampToken.getTimeStampInfo().getMessageImprintDigest())) {
+            logger.log(Level.INFO, "Digest do documento conferido com sucesso.");
+        } else {
+            throw new TimestampException("O Hash do documento não confere!");
+        };
+
         return validado;
     }
 

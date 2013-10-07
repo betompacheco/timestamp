@@ -19,6 +19,7 @@ public class ConnectorFactory {
             case SOCKET: {
                 return new SocketConnector();
             }
+
             default: {
                 return new SocketConnector();
             }
