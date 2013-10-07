@@ -264,64 +264,72 @@ public class TimestampGenerator {
     }
 
     /**
-     * Valida um carimbo de tempo
      *
-     * @param response O response do servidor de carimbo de tempo
-     * @param original
-     * @return
-     * @throws TSPException
-     * @throws IOException
-     * @throws CMSException
-     * @throws OperatorCreationException
-     * @throws CertificateException
+     * @param response O carimbo de tempo a ser validado
+     * @throws TimestampException
      */
-    public boolean validate(byte[] response, byte[] original) throws TimestampException, TSPException, CMSException, OperatorCreationException, CertificateException, IOException {
+    public void validate(byte[] response) throws TimestampException {
+        try {
+            Security.addProvider(new BouncyCastleProvider());
+            TimeStampResponse tsr = new TimeStampResponse(response);
+            TimeStampToken timeStampToken = tsr.getTimeStampToken();
+            CMSSignedData s = timeStampToken.toCMSSignedData();
 
-        boolean validado = true;
+            int verified = 0;
 
-        Security.addProvider(new BouncyCastleProvider());
-        TimeStampResponse tsr = new TimeStampResponse(response);
-        TimeStampToken timeStampToken = tsr.getTimeStampToken();
-        CMSSignedData s = timeStampToken.toCMSSignedData();
+            Store certStore = s.getCertificates();
+            SignerInformationStore signers = s.getSignerInfos();
+            Collection c = signers.getSigners();
+            Iterator it = c.iterator();
 
-        int verified = 0;
+            while (it.hasNext()) {
+                SignerInformation signer = (SignerInformation) it.next();
+                Collection certCollection = certStore.getMatches(signer.getSID());
 
-        Store certStore = s.getCertificates();
-        SignerInformationStore signers = s.getSignerInfos();
-        Collection c = signers.getSigners();
-        Iterator it = c.iterator();
+                Iterator certIt = certCollection.iterator();
+                X509CertificateHolder cert = (X509CertificateHolder) certIt.next();
 
-        while (it.hasNext()) {
-            SignerInformation signer = (SignerInformation) it.next();
-            Collection certCollection = certStore.getMatches(signer.getSID());
-
-            Iterator certIt = certCollection.iterator();
-            X509CertificateHolder cert = (X509CertificateHolder) certIt.next();
-
-            if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(cert))) {
-                verified++;
+                if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(cert))) {
+                    verified++;
+                }
             }
-        }
 
-        logger.log(Level.INFO, "verificados : {0}", verified);
-        timestamp = new Timestamp(timeStampToken);
+            logger.log(Level.INFO, "Assinaturas Verificadas : {0}", verified);
+            this.timestamp = new Timestamp(timeStampToken);
+        } catch (TSPException ex) {
+            throw new TimestampException(ex.getMessage(), ex.getCause());
+        } catch (IOException ex) {
+            throw new TimestampException(ex.getMessage(), ex.getCause());
+        } catch (CMSException ex) {
+            throw new TimestampException(ex.getMessage(), ex.getCause());
+        } catch (OperatorCreationException ex) {
+            throw new TimestampException(ex.getMessage(), ex.getCause());
+        } catch (CertificateException ex) {
+            throw new TimestampException(ex.getMessage(), ex.getCause());
+        }
+    }
+
+    /**
+     * Valida um carimnbo de tempo
+     *
+     * @param response O carimbo de tempo a ser validado
+     * @param original O arquivo original a ser validado
+     * @throws TimestampException
+     */
+    public void validate(byte[] response, byte[] original) throws TimestampException {
+        //Valida a assinatura digital do carimbo de tempo
+        this.validate(response);
 
         //Valida o hash  incluso no carimbo de tempo com hash do arquivo carimbado
         Digest digest = DigestFactory.getInstance().factoryDefault();
         digest.setAlgorithm(DigestAlgorithmEnum.SHA_256);
         digest.digest(original);
 
-        logger.log(Level.INFO, "Digest do Carimbo de Tempo:   {0}", Base64.toBase64String(timeStampToken.getTimeStampInfo().getMessageImprintDigest()));
-
-        logger.log(Level.INFO, "Digest do documento Original: {0}", Base64.toBase64String(digest.digest(original)));
-
-        if (Arrays.equals(digest.digest(original), timeStampToken.getTimeStampInfo().getMessageImprintDigest())) {
+        if (Arrays.equals(digest.digest(original), this.timestamp.getMessageImprintDigest())) {
             logger.log(Level.INFO, "Digest do documento conferido com sucesso.");
         } else {
             throw new TimestampException("O Hash do documento não confere!");
-        };
-
-        return validado;
+        }
     }
 
     public Timestamp getTimestamp() {

@@ -33,6 +33,10 @@ public class Timestamp {
         return timeStampToken.getTimeStampInfo().getHashAlgorithm().getAlgorithm().toString();
     }
 
+    public byte[] getMessageImprintDigest() {
+        return timeStampToken.getTimeStampInfo().getMessageImprintDigest();
+    }
+
     public String getMessageImprintDigestBase64() {
         return Base64.toBase64String(timeStampToken.getTimeStampInfo().getMessageImprintDigest());
     }

@@ -23,10 +23,10 @@ import org.bouncycastle.cms.CMSSignedDataGenerator;
  */
 public class RequestSigner {
 
-    public byte[] assinar(KeyStore ks, String alias, char[] password, byte[] conteudo) {
+    public byte[] assinar(KeyStore keystore, String alias, char[] password, byte[] request) {
         try {
-            PrivateKey key = (PrivateKey) ks.getKey(alias, password);
-            X509Certificate cert = (X509Certificate) ks.getCertificate(alias);
+            PrivateKey key = (PrivateKey) keystore.getKey(alias, password);
+            X509Certificate cert = (X509Certificate) keystore.getCertificate(alias);
             List<X509Certificate> certs = new ArrayList<X509Certificate>();
             certs.add(cert);
             CertStore certsAndCrls = CertStore.getInstance("Collection", new CollectionCertStoreParameters(certs));
@@ -37,8 +37,8 @@ public class RequestSigner {
             generator.addCertificatesAndCRLs(certsAndCrls);
 
             // Create the signed data object
-            CMSProcessable data = new CMSProcessableByteArray(conteudo);
-            CMSSignedData signed = generator.generate(data, true, ks.getProvider());
+            CMSProcessable data = new CMSProcessableByteArray(request);
+            CMSSignedData signed = generator.generate(data, true, keystore.getProvider());
 
             return signed.getEncoded();
 
