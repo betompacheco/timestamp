@@ -2,13 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.gov.frameworkdemoiselle.timestamp.messages;
+package br.gov.frameworkdemoiselle.timestamp.enumeration;
 
 /**
  *
  * @author 07721825741
  */
-public enum PKIFailureInfoEnum {
+public enum PKIFailureInfo {
 
     badAlg(0, "Unrecognized or unsupported Algorithm Identifier."),
     badRequest(2, "Transaction not permitted or supported."),
@@ -21,7 +21,7 @@ public enum PKIFailureInfoEnum {
     private int id;
     private String message;
 
-    private PKIFailureInfoEnum(int id, String message) {
+    private PKIFailureInfo(int id, String message) {
         this.id = id;
         this.message = message;
     }

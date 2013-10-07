@@ -13,11 +13,11 @@ import org.bouncycastle.util.encoders.Hex;
  *
  * @author 07721825741
  */
-public class Carimbo {
+public class Timestamp {
 
     private TimeStampToken timeStampToken = null;
 
-    Carimbo(TimeStampToken timeStampToken) {
+    Timestamp(TimeStampToken timeStampToken) {
         this.timeStampToken = timeStampToken;
     }
 

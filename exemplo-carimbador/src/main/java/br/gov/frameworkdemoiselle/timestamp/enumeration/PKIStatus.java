@@ -2,13 +2,13 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package br.gov.frameworkdemoiselle.timestamp.messages;
+package br.gov.frameworkdemoiselle.timestamp.enumeration;
 
 /**
  *
  * @author 07721825741
  */
-public enum PKIStatusEnum {
+public enum PKIStatus {
 
     granted(0, "Granted"),
     grantedWithMods(1, "Granted With Mods"),
@@ -19,7 +19,7 @@ public enum PKIStatusEnum {
     private int id;
     private String message;
 
-    private PKIStatusEnum(int id, String message) {
+    private PKIStatus(int id, String message) {
         this.id = id;
         this.message = message;
     }

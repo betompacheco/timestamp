@@ -1,11 +1,12 @@
 package br.gov.frameworkdemoiselle.timestamp;
 
 import br.gov.frameworkdemoiselle.timestamp.connector.Connector;
-import br.gov.frameworkdemoiselle.timestamp.connector.SocketConnector;
+import br.gov.frameworkdemoiselle.timestamp.connector.ConnectorFactory;
 import br.gov.frameworkdemoiselle.timestamp.digest.DigestCalculator;
+import br.gov.frameworkdemoiselle.timestamp.enumeration.ConnectionType;
 import br.gov.frameworkdemoiselle.timestamp.exception.TimestampException;
-import br.gov.frameworkdemoiselle.timestamp.messages.PKIFailureInfoEnum;
-import br.gov.frameworkdemoiselle.timestamp.messages.PKIStatusEnum;
+import br.gov.frameworkdemoiselle.timestamp.enumeration.PKIFailureInfo;
+import br.gov.frameworkdemoiselle.timestamp.enumeration.PKIStatus;
 import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
@@ -44,11 +45,11 @@ import org.bouncycastle.util.encoders.Base64;
  *
  * @author 07721825741
  */
-public class Carimbador {
+public class TimestampGenerator {
 
-    private final static Logger logger = Logger.getLogger(Carimbador.class.getName());
+    private final static Logger logger = Logger.getLogger(TimestampGenerator.class.getName());
     private InputStream inputStream = null;
-    private Carimbo carimbo;
+    private Timestamp timestamp;
     private TimeStampRequest timeStampRequest;
     private TimeStampResponse timeStampResponse;
 
@@ -65,32 +66,42 @@ public class Carimbador {
         keystore.load(is, CLIENT_PASSWORD.toCharArray());
         String alias = keystore.aliases().nextElement();
 
-        Carimbador carimbador = new Carimbador();
+        TimestampGenerator carimbador = new TimestampGenerator();
 
 //        byte[] dados = Utils.readContent("/home/07721825741/drivers.config");
 //
-//        byte[] pedido = carimbador.montaPedido(dados, keystore, alias, new SHA256DigestCalculator());
+//        byte[] pedido = carimbador.createRequest(dados, keystore, alias, new SHA256DigestCalculator());
 //
 //        logger.info("Escreve o request assinado em disco");
 //        Utils.writeContent(pedido, "request.tsq");
 //
-//        byte[] resposta = carimbador.carimbar(pedido);
+//        byte[] resposta = carimbador.doTimestamp(pedido);
 //
 //        logger.info("Escreve o response assinado em disco");
 //        Utils.writeContent(resposta, "response.tsr");
 
-        carimbador.validar(Utils.readContent("response.tsr"), null);
+        carimbador.validate(Utils.readContent("response.tsr"), null);
 
-        logger.log(Level.INFO, carimbador.getCarimbo().toString());
+        logger.log(Level.INFO, carimbador.getTimestamp().toString());
     }
 
-    public byte[] montaPedido(byte content) {
+    public byte[] createRequest(byte content) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public byte[] montaPedido(byte[] data, KeyStore ks, String a, DigestCalculator digestCalculator) throws TimestampException, IOException {
+    /**
+     *
+     * @param original
+     * @param keystore
+     * @param alias
+     * @param digestCalculator
+     * @return
+     * @throws TimestampException
+     * @throws IOException
+     */
+    public byte[] createRequest(byte[] original, KeyStore keystore, String alias, DigestCalculator digestCalculator) throws TimestampException, IOException {
         logger.log(Level.INFO, "Gerando o digest do conteudo");
-        digestCalculator.getOutputStream().write(data);
+        digestCalculator.getOutputStream().write(original);
         byte[] hashedMessage = digestCalculator.getDigest();
         logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
 
@@ -102,7 +113,7 @@ public class Carimbador {
 
         logger.info("Efetuando a  assinatura do conteudo");
         RequestSigner requestSigner = new RequestSigner();
-        byte[] signedRequest = requestSigner.assinar(ks, a, null, request);
+        byte[] signedRequest = requestSigner.assinar(keystore, alias, null, request);
 
         return signedRequest;
     }
@@ -110,15 +121,14 @@ public class Carimbador {
     /**
      *
      * @param request
-     * @param ks
-     * @param a
-     * @param digestCalculator
+     * @param connectionType
+     * @return
      * @throws TimestampException
      */
-    public byte[] carimbar(byte[] request) throws TimestampException {
+    public byte[] doTimestamp(byte[] request, ConnectionType connectionType) throws TimestampException {
         try {
             logger.log(Level.INFO, "Iniciando pedido de carimbo de tempo");
-            Connector connector = new SocketConnector();
+            Connector connector = ConnectorFactory.buildConnector(connectionType);
             connector.setHostname("act.serpro.gov.br");
             connector.setPort(318);
 
@@ -173,27 +183,27 @@ public class Carimbador {
 
             switch (timeStampResponse.getStatus()) {
                 case 0: {
-                    logger.log(Level.INFO, PKIStatusEnum.granted.getMessage());
+                    logger.log(Level.INFO, PKIStatus.granted.getMessage());
                     break;
                 }
                 case 1: {
-                    logger.log(Level.INFO, PKIStatusEnum.grantedWithMods.getMessage());
+                    logger.log(Level.INFO, PKIStatus.grantedWithMods.getMessage());
                 }
                 case 2: {
-                    logger.log(Level.INFO, PKIStatusEnum.rejection.getMessage());
-                    throw new TimestampException(PKIStatusEnum.rejection.getMessage());
+                    logger.log(Level.INFO, PKIStatus.rejection.getMessage());
+                    throw new TimestampException(PKIStatus.rejection.getMessage());
                 }
                 case 3: {
-                    logger.log(Level.INFO, PKIStatusEnum.waiting.getMessage());
-                    throw new TimestampException(PKIStatusEnum.waiting.getMessage());
+                    logger.log(Level.INFO, PKIStatus.waiting.getMessage());
+                    throw new TimestampException(PKIStatus.waiting.getMessage());
                 }
                 case 4: {
-                    logger.log(Level.INFO, PKIStatusEnum.revocationWarning.getMessage());
-                    throw new TimestampException(PKIStatusEnum.revocationWarning.getMessage());
+                    logger.log(Level.INFO, PKIStatus.revocationWarning.getMessage());
+                    throw new TimestampException(PKIStatus.revocationWarning.getMessage());
                 }
                 case 5: {
-                    logger.log(Level.INFO, PKIStatusEnum.revocationNotification.getMessage());
-                    throw new TimestampException(PKIStatusEnum.revocationNotification.getMessage());
+                    logger.log(Level.INFO, PKIStatus.revocationNotification.getMessage());
+                    throw new TimestampException(PKIStatus.revocationNotification.getMessage());
                 }
             }
 
@@ -207,34 +217,34 @@ public class Carimbador {
 
             switch (failInfo) {
                 case 0:
-                    logger.log(Level.INFO, PKIFailureInfoEnum.badAlg.getMessage());
+                    logger.log(Level.INFO, PKIFailureInfo.badAlg.getMessage());
                     break;
                 case 2:
-                    logger.log(Level.INFO, PKIFailureInfoEnum.badRequest.getMessage());
+                    logger.log(Level.INFO, PKIFailureInfo.badRequest.getMessage());
                     break;
                 case 5:
-                    logger.log(Level.INFO, PKIFailureInfoEnum.badDataFormat.getMessage());
+                    logger.log(Level.INFO, PKIFailureInfo.badDataFormat.getMessage());
                     break;
                 case 14:
-                    logger.log(Level.INFO, PKIFailureInfoEnum.timeNotAvailable.getMessage());
+                    logger.log(Level.INFO, PKIFailureInfo.timeNotAvailable.getMessage());
                     break;
                 case 15:
-                    logger.log(Level.INFO, PKIFailureInfoEnum.unacceptedPolicy.getMessage());
+                    logger.log(Level.INFO, PKIFailureInfo.unacceptedPolicy.getMessage());
                     break;
                 case 16:
-                    logger.log(Level.INFO, PKIFailureInfoEnum.unacceptedExtension.getMessage());
+                    logger.log(Level.INFO, PKIFailureInfo.unacceptedExtension.getMessage());
                     break;
                 case 17:
-                    logger.log(Level.INFO, PKIFailureInfoEnum.addInfoNotAvailable.getMessage());
+                    logger.log(Level.INFO, PKIFailureInfo.addInfoNotAvailable.getMessage());
                     break;
                 case 25:
-                    logger.log(Level.INFO, PKIFailureInfoEnum.systemFailure.getMessage());
+                    logger.log(Level.INFO, PKIFailureInfo.systemFailure.getMessage());
                     break;
             }
 
             timeStampResponse.validate(timeStampRequest);
             TimeStampToken timeStampToken = timeStampResponse.getTimeStampToken();
-            carimbo = new Carimbo(timeStampToken);
+            timestamp = new Timestamp(timeStampToken);
 
             if (timeStampToken == null) {
                 throw new TimestampException("O Token retornou nulo.");
@@ -260,7 +270,7 @@ public class Carimbador {
      * @throws OperatorCreationException
      * @throws CertificateException
      */
-    public boolean validar(byte[] response, byte[] original) throws TSPException, IOException, CMSException, OperatorCreationException, CertificateException {
+    public boolean validate(byte[] response, byte[] original) throws TSPException, IOException, CMSException, OperatorCreationException, CertificateException {
 
         boolean validado = true;
 
@@ -293,11 +303,11 @@ public class Carimbador {
         logger.log(Level.INFO, new String(tsd.getEncoded()));
 
         logger.log(Level.INFO, "verificados : {0}", verified);
-        carimbo = new Carimbo(timeStampToken);
+        timestamp = new Timestamp(timeStampToken);
         return validado;
     }
 
-    public Carimbo getCarimbo() {
-        return carimbo;
+    public Timestamp getTimestamp() {
+        return timestamp;
     }
 }
