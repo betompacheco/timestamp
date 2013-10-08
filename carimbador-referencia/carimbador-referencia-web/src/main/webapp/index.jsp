@@ -22,7 +22,7 @@
             </tr>
             <tr>
                 <td align="center">
-                    <applet codebase="http://10.34.177.125:8080/carimbador-referencia-serpro/" code="br.gov.frameworkdemoiselle.timestamp.applet.App" width=600 height=400 MAYSCRIPT
+                    <applet codebase="http://localhost:8080/carimbador-referencia-serpro/" code="br.gov.frameworkdemoiselle.timestamp.applet.App" width=600 height=400 MAYSCRIPT
                             archive="carimbador-referencia-applet.jar,
                             bcmail-jdk15on-1.49.jar,
                             bcpkix-jdk15on-1.49.jar,
