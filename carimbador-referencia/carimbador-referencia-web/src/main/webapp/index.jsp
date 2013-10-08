@@ -30,6 +30,7 @@
                             demoiselle-certificate-timestamp-1.0-SNAPSHOT.jar,
                             demoiselle-certificate-applet-1.0.1.jar,
                             demoiselle-certificate-core-1.0.1.jar,
+                            demoiselle-certificate-criptography-1.0.1,
                             log4j-1.2.16.jar,
                             slf4j-api-1.6.1.jar,
                             slf4j-log4j12-1.6.1.jar">
