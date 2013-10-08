@@ -1,5 +1,6 @@
 package br.gov.frameworkdemoiselle.timestamp.utils;
 
+import br.gov.frameworkdemoiselle.timestamp.exception.TimestampException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -38,13 +41,19 @@ public class Utils {
      * @param arquivo Caminho do arquivo
      * @return Os bytes do arquivo
      */
-    public static byte[] readContent(String arquivo) throws FileNotFoundException, IOException {
-        File file = new File(arquivo);
-        InputStream is = new FileInputStream(file);
-        byte[] result = new byte[(int) file.length()];
-        is.read(result);
-        is.close();
-        return result;
+    public static byte[] readContent(String arquivo) throws TimestampException {
+        try {
+            File file = new File(arquivo);
+            InputStream is = new FileInputStream(file);
+            byte[] result = new byte[(int) file.length()];
+            is.read(result);
+            is.close();
+            return result;
+        } catch (FileNotFoundException ex) {
+            throw new TimestampException(ex.getMessage(), ex.getCause());
+        } catch (IOException ex) {
+            throw new TimestampException(ex.getMessage(), ex.getCause());
+        }
     }
 
     /**
@@ -53,11 +62,15 @@ public class Utils {
      * @param conteudo O conteudo a ser escrito em disco
      * @param arquivo O caminho e nome do arquivo
      */
-    public static void writeContent(byte[] conteudo, String arquivo) throws FileNotFoundException, IOException {
-        File file = new File(arquivo);
-        OutputStream os = new FileOutputStream(file);
-        os.write(conteudo);
-        os.flush();
-        os.close();
+    public static void writeContent(byte[] conteudo, String arquivo) throws TimestampException {
+        try {
+            File file = new File(arquivo);
+            OutputStream os = new FileOutputStream(file);
+            os.write(conteudo);
+            os.flush();
+            os.close();
+        } catch (IOException ex) {
+            throw new TimestampException(ex.getMessage(), ex.getCause());
+        }
     }
 }
