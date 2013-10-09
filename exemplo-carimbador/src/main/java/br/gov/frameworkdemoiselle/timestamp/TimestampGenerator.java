@@ -69,12 +69,13 @@ public class TimestampGenerator {
         logger.log(Level.INFO, "Gerando o digest do conteudo");
         Digest digest = DigestFactory.getInstance().factoryDefault();
         digest.setAlgorithm(digestAlgorithm);
-        byte[] hashedMessage = digest.digest(original);;
+        byte[] hashedMessage = digest.digest(original);
         logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
 
         logger.log(Level.INFO, "Montando a requisicao para o carimbador de tempo");
         TimeStampRequestGenerator timeStampRequestGenerator = new TimeStampRequestGenerator();
         timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2"));
+        timeStampRequestGenerator.setCertReq(true);
         timeStampRequest = timeStampRequestGenerator.generate(TSPAlgorithms.SHA256, hashedMessage, BigInteger.valueOf(100));
         byte request[] = timeStampRequest.getEncoded();
 
