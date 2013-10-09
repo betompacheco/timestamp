@@ -51,7 +51,7 @@ public class TimestampGeneratorTest extends TestCase {
 //        Utils.writeContent(resposta, "/home/07721825741/NetBeansProjects/timestamp/exemplo-carimbador/response.tsr");
 
         //Efetua a validacao do Token
-        response = Utils.readContent("/home/07721825741/NetBeansProjects/timestamp/exemplo-carimbador/response.tsr");
+        response = Utils.readContent("/home/07721825741/NetBeansProjects/timestamp/demoiselle-certificate-timestamp/src/test/resources/response.tsr");
 
 //        timestampGen.validate(response, original);
 

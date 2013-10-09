@@ -248,15 +248,13 @@ public class TimestampGenerator {
             while (it.hasNext()) {
                 SignerInformation signer = (SignerInformation) it.next();
                 Collection certCollection = certStore.getMatches(signer.getSID());
-
                 Iterator certIt = certCollection.iterator();
                 X509CertificateHolder cert = (X509CertificateHolder) certIt.next();
-
-                cert.getExtension(new ASN1ObjectIdentifier("2.5.29.31")).getExtnValue();
-
                 if (signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(cert))) {
                     verified++;
                 }
+
+                cert.getExtension(new ASN1ObjectIdentifier("2.5.29.31")).getExtnValue();
             }
 
             logger.log(Level.INFO, "Assinaturas Verificadas : {0}", verified);
