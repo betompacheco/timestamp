@@ -88,13 +88,13 @@ public class Timestamp {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Data e hora = ").append(this.getCarimbodeTempo()).append("\n");
-        builder.append("Politica = ").append(this.getPolitica()).append("\n");
-        builder.append("Serial = ").append(this.getNumeroSerie()).append("\n");
-        builder.append("Certificado DN = ").append(this.getAutoridadeCarimboTempo()).append("\n");
-        builder.append("Hash Algorithm = ").append(this.getAlgoritmoDoHash()).append("\n");
-        builder.append("Message Imprint Digest (Hex) = ").append(this.getMessageImprintDigestHex()).append("\n");
-        builder.append("Message Imprint Digest (Base64) = ").append(this.getMessageImprintDigestBase64()).append("\n");
+        builder.append("Data / hora : ").append(this.getCarimbodeTempo()).append("\n");
+        builder.append("Politica : ").append(this.getPolitica()).append("\n");
+        builder.append("Serial : ").append(this.getNumeroSerie()).append("\n");
+        builder.append("Certificado TSA : ").append(this.getAutoridadeCarimboTempo()).append("\n");
+        builder.append("Hash Algorithm : ").append(this.getAlgoritmoDoHash()).append("\n");
+        builder.append("Message Imprint Digest (Hex) : ").append(this.getMessageImprintDigestHex()).append("\n");
+        builder.append("Message Imprint Digest (Base64) : ").append(this.getMessageImprintDigestBase64()).append("\n");
         return builder.toString();
     }
 }
