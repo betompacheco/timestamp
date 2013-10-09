@@ -22,12 +22,13 @@
             </tr>
             <tr>
                 <td align="center">
-                    <applet codebase="https://161.148.2.48/carimbador-referencia-serpro/" code="br.gov.frameworkdemoiselle.timestamp.applet.App" width=600 height=400 MAYSCRIPT
-                            archive="carimbador-referencia-applet.jar,
-                            bcmail-jdk15on-1.49.jar,
+                    <!--<applet codebase="https://161.148.2.48/carimbador-referencia-serpro/" code="br.gov.frameworkdemoiselle.timestamp.applet.App" width=600 height=400 MAYSCRIPT-->
+
+                    <applet code="br.gov.frameworkdemoiselle.timestamp.applet.App" width=800 height=450 MAYSCRIPT
+                            archive="bcmail-jdk15on-1.49.jar,
                             bcpkix-jdk15on-1.49.jar,
                             bcprov-jdk15on-1.49.jar,
-                            demoiselle-certificate-timestamp-1.0-SNAPSHOT.jar,
+                            demoiselle-certificate-timestamp-applet-1.0.0.jar,
                             demoiselle-certificate-applet-1.0.1.jar,
                             demoiselle-certificate-core-1.0.1.jar,
                             demoiselle-certificate-criptography-1.0.1.jar,
