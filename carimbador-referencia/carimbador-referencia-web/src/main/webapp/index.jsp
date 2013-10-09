@@ -29,6 +29,7 @@
                             bcpkix-jdk15on-1.49.jar,
                             bcprov-jdk15on-1.49.jar,
                             demoiselle-certificate-timestamp-applet-1.0.0.jar,
+                            demoiselle-certificate-timestamp-1.0-SNAPSHOT.jar,
                             demoiselle-certificate-applet-1.0.1.jar,
                             demoiselle-certificate-core-1.0.1.jar,
                             demoiselle-certificate-criptography-1.0.1.jar,
