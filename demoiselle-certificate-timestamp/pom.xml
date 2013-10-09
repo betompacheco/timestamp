@@ -45,7 +45,6 @@
     </dependencies>
 
     <build>
-        <!--<finalName>exemplo-carimbador</finalName>-->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -93,6 +92,25 @@
                     <source>1.6</source>
                     <target>1.6</target>
                     <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jarsigner-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <id>sign</id>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <keystore>/home/07721825741/Documentos/Scripts/keystore.jks</keystore>
+                    <alias>jimkirk</alias>
+                    <storepass>changeit</storepass>
+                    <keypass>changeit</keypass>
                 </configuration>
             </plugin>
         </plugins>
