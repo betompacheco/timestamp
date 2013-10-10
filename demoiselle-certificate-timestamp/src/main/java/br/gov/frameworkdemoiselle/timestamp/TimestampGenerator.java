@@ -51,17 +51,16 @@ public class TimestampGenerator {
     private TimeStampRequest timeStampRequest;
     private TimeStampResponse timeStampResponse;
 
-    public byte[] createRequest(byte content) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
     /**
+     * Cria uma requisição de carimbo de tempo assinada pelo usuario
      *
-     * @param original
-     * @param keystore
-     * @param alias
-     * @param digestAlgorithm
-     * @return
+     * @param original O conteudo em bytes do arquivo a ser carimbado
+     * @param keystore O repositorio de chaves assimetricas do usuario
+     * habilitado no servidor de carimbo de tempo
+     * @param alias O apelido do certificado associado ao repositorio de chaves
+     * @param digestAlgorithm O algoritmo a ser utilizado para gerar o hash do
+     * documento
+     * @return Uma requisicao de carimbo de tempo
      * @throws TimestampException
      * @throws IOException
      */
@@ -87,10 +86,13 @@ public class TimestampGenerator {
     }
 
     /**
+     * Envia a requisicao de carimbo de tempo para um servidor de carimbo de
+     * tempo
      *
-     * @param request
-     * @param connectionType
-     * @return
+     * @param request A requisicao de carimbo de tempo
+     * @param connectionType O tipo de conexao que sera utilizada para acessar o
+     * servidor de carimbo de tempo
+     * @return O carimbo de tempo retornado pelo servidor
      * @throws TimestampException
      */
     public byte[] doTimestamp(byte[] request, ConnectionType connectionType) throws TimestampException {
@@ -227,6 +229,7 @@ public class TimestampGenerator {
     }
 
     /**
+     * Efetua a validacao de um carimbo de tempo
      *
      * @param response O carimbo de tempo a ser validado
      * @throws TimestampException
@@ -295,6 +298,11 @@ public class TimestampGenerator {
         }
     }
 
+    /**
+     * Retorna um carimbo de tempo com seus atributos disponiveis para uso
+     *
+     * @return O carimbo de tempo
+     */
     public Timestamp getTimestamp() {
         return timestamp;
     }
