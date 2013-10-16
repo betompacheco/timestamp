@@ -1,4 +1,4 @@
 timestamp
 =========
 
-Prova de Conceito do Timestamp
+Prova de Conceito do Carimbador de Tempo do SERPRO
