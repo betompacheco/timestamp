@@ -7,9 +7,9 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>Demoiselle Certificate Timestamp</name>
+    <name>Demoiselle Certificate Timestamp Component</name>
     <url>http://maven.apache.org</url>
-    <description>Demoiselle Certificate Timestamp</description>
+    <description>Demoiselle Certificate Timestamp Component</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
