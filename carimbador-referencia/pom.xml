@@ -5,7 +5,7 @@
     <artifactId>carimbador-referencia</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>carimbador-referencia</name>
+    <name>Demoiselle Certificate Timestamp Integrator</name>
     <modules>
         <module>carimbador-referencia-ear</module>
         <module>carimbador-referencia-web</module>
