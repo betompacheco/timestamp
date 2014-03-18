@@ -40,7 +40,7 @@
         <dependency>
             <groupId>br.gov.frameworkdemoiselle.component</groupId>
             <artifactId>demoiselle-certificate-criptography</artifactId>
-            <version>1.0.2</version>
+            <version>1.0.7-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
