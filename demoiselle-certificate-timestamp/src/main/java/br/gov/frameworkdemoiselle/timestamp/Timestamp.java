@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.logging.Logger;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
@@ -15,6 +16,7 @@ import org.bouncycastle.util.encoders.Hex;
  */
 public class Timestamp {
 
+    private final static Logger logger = Logger.getLogger(Timestamp.class.getName());
     private TimeStampToken timeStampToken = null;
 
     Timestamp(TimeStampToken timeStampToken) {
@@ -87,7 +89,7 @@ public class Timestamp {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(0);
         builder.append("Data / hora : ").append(this.getCarimbodeTempo()).append("\n");
         builder.append("Politica : ").append(this.getPolitica()).append("\n");
         builder.append("Serial : ").append(this.getNumeroSerie()).append("\n");
