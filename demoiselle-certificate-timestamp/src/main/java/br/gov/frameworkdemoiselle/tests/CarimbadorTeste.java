@@ -1,9 +1,11 @@
-package br.gov.frameworkdemoiselle;
+package br.gov.frameworkdemoiselle.tests;
 
 import br.gov.frameworkdemoiselle.certificate.criptography.Digest;
 import br.gov.frameworkdemoiselle.certificate.criptography.DigestAlgorithmEnum;
 import br.gov.frameworkdemoiselle.certificate.criptography.factory.DigestFactory;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -12,7 +14,6 @@ import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
-
 import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
@@ -39,7 +40,6 @@ public class CarimbadorTeste {
             TimeStampRequestGenerator timeStampRequestGenerator = new TimeStampRequestGenerator();
 //            timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("1.3.6.1.4.1.13762.3"));
             timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("1.2.3.4.5"));
-
 
             Digest digest = DigestFactory.getInstance().factoryDefault();
             digest.setAlgorithm(DigestAlgorithmEnum.SHA_1);

@@ -1,6 +1,12 @@
-package br.gov.frameworkdemoiselle;
+package br.gov.frameworkdemoiselle.tests;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -14,7 +20,6 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLPeerUnverifiedException;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -52,7 +57,6 @@ public class HttpsClient {
         try {
 
 //            String serverAddress = JOptionPane.showInputDialog("Enter IP Address of a machine that is\n" + "running the date service on port 9090:");
-
             logger.log(Level.INFO, "Iniciando pedido de carimbo de tempo");
             /*----------------------------------------------------------------------------------*/
             String CLIENT_PASSWORD = "G4bizinh4";
@@ -124,10 +128,8 @@ public class HttpsClient {
 
             //Imprime informacoes sobre a conexao SSL
 //            print_https_cert(con);
-
             //Imprime o conteudo de retorno
 //            print_content(con);
-
             if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 throw new IOException("Received HTTP error: " + con.getResponseCode() + " - " + con.getResponseMessage());
             } else {
@@ -198,8 +200,6 @@ public class HttpsClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
 
     }
 
