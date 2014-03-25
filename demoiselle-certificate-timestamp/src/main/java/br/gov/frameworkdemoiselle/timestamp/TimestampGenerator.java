@@ -80,7 +80,7 @@ public class TimestampGenerator {
 
         logger.info("Efetuando a  assinatura do conteudo");
         RequestSigner requestSigner = new RequestSigner();
-        byte[] signedRequest = requestSigner.assinar(keystore, alias, null, request);
+        byte[] signedRequest = requestSigner.signRequest(keystore, alias, null, request);
 
         return signedRequest;
     }

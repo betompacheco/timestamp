@@ -11,7 +11,6 @@ import java.security.cert.CollectionCertStoreParameters;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.bouncycastle.cms.CMSProcessable;
 import org.bouncycastle.cms.CMSProcessableByteArray;
 import org.bouncycastle.cms.CMSSignedData;
@@ -23,7 +22,16 @@ import org.bouncycastle.cms.CMSSignedDataGenerator;
  */
 public class RequestSigner {
 
-    public byte[] assinar(KeyStore keystore, String alias, char[] password, byte[] request) {
+    /**
+     * Realiza a assinatura de uma requisicao de carimbo de tempo
+     *
+     * @param keystore
+     * @param alias
+     * @param password
+     * @param request
+     * @return A requisicao assinada
+     */
+    public byte[] signRequest(KeyStore keystore, String alias, char[] password, byte[] request) {
         try {
             PrivateKey key = (PrivateKey) keystore.getKey(alias, password);
             X509Certificate cert = (X509Certificate) keystore.getCertificate(alias);
