@@ -40,7 +40,12 @@
         <dependency>
             <groupId>br.gov.frameworkdemoiselle.component</groupId>
             <artifactId>demoiselle-certificate-criptography</artifactId>
-            <version>1.0.7-SNAPSHOT</version>
+            <version>1.0.8-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>br.gov.frameworkdemoiselle.component</groupId>
+            <artifactId>demoiselle-certificate-core</artifactId>
+            <version>1.0.8-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -70,8 +75,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.1</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
             </plugin>
