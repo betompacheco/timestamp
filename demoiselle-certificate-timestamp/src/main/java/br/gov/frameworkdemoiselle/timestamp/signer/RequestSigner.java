@@ -68,14 +68,10 @@ public class RequestSigner {
 //            generator.addCRLs(crlStore);
             // Create the signed data object
             CMSTypedData data = new CMSProcessableByteArray(request);
-
             CMSSignedData signed = generator.generate(data, true);
-
             return signed.getEncoded();
 
-        } catch (UnrecoverableKeyException | CMSException | NoSuchAlgorithmException | IOException | KeyStoreException ex) {
-            logger.log(Level.INFO, ex.getMessage());
-        } catch (OperatorCreationException | CertificateEncodingException ex) {
+        } catch (UnrecoverableKeyException | CMSException | NoSuchAlgorithmException | IOException | KeyStoreException | OperatorCreationException | CertificateEncodingException ex) {
             logger.log(Level.INFO, ex.getMessage());
         }
         return null;
