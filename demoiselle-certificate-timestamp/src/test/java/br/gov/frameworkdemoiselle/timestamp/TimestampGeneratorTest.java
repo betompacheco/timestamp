@@ -10,8 +10,10 @@ import br.gov.frameworkdemoiselle.timestamp.utils.Utils;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import junit.framework.TestCase;
@@ -48,7 +50,11 @@ public class TimestampGeneratorTest extends TestCase {
         keystore.load(is, CLIENT_PASSWORD.toCharArray());
         String alias = keystore.aliases().nextElement();
 
-        byte[] pedido = timestampGen.createRequest(original, keystore, alias, DigestAlgorithmEnum.SHA_256);
+        PrivateKey pk = (PrivateKey) keystore.getKey(alias, null);
+
+        Certificate[] certificates = keystore.getCertificateChain(alias);
+
+        byte[] pedido = timestampGen.createRequest(original, pk, certificates, DigestAlgorithmEnum.SHA_256);
 
         logger.info("Escreve o request assinado em disco");
         Utils.writeContent(pedido, "/home/07721825741/NetBeansProjects/timestamp/demoiselle-certificate-timestamp/request.tsq");

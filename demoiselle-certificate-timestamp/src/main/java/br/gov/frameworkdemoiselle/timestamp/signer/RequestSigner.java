@@ -1,12 +1,9 @@
 package br.gov.frameworkdemoiselle.timestamp.signer;
 
 import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Security;
-import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -36,28 +33,22 @@ public class RequestSigner {
     /**
      * Realiza a assinatura de uma requisicao de carimbo de tempo
      *
-     * @param keystore
-     * @param alias
-     * @param password
+     * @param privateKey
+     * @param certificates
      * @param request
      * @return A requisicao assinada
      */
-    public byte[] signRequest(KeyStore keystore, String alias, char[] password, byte[] request) {
-
-        logger.log(Level.INFO, "Efetuando a assinatura da requisicao");
-
+    public byte[] signRequest(PrivateKey privateKey, Certificate[] certificates, byte[] request) {
         try {
+            logger.log(Level.INFO, "Efetuando a assinatura da requisicao");
             Security.addProvider(new BouncyCastleProvider());
 
-            PrivateKey privateKey = (PrivateKey) keystore.getKey(alias, password);
-            X509Certificate signCert = (X509Certificate) keystore.getCertificate(alias);
+            X509Certificate signCert = (X509Certificate) certificates[0];
             List<X509Certificate> certList = new ArrayList<>();
             certList.add(signCert);
 
             // setup the generator
             CMSSignedDataGenerator generator = new CMSSignedDataGenerator();
-
-            //TODO Obsoleto. use addSignerInfoGenerator
             SignerInfoGenerator signerInfoGenerator = new JcaSimpleSignerInfoGeneratorBuilder().build("SHA256withRSA", privateKey, signCert);
             generator.addSignerInfoGenerator(signerInfoGenerator);
 
@@ -71,7 +62,7 @@ public class RequestSigner {
             CMSSignedData signed = generator.generate(data, true);
             return signed.getEncoded();
 
-        } catch (UnrecoverableKeyException | CMSException | NoSuchAlgorithmException | IOException | KeyStoreException | OperatorCreationException | CertificateEncodingException ex) {
+        } catch (CMSException | IOException | OperatorCreationException | CertificateEncodingException ex) {
             logger.log(Level.INFO, ex.getMessage());
         }
         return null;

@@ -13,8 +13,9 @@ import br.gov.frameworkdemoiselle.timestamp.signer.RequestSigner;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,16 +56,15 @@ public class TimestampGenerator {
      * Cria uma requisição de carimbo de tempo assinada pelo usuario
      *
      * @param original O conteudo em bytes do arquivo a ser carimbado
-     * @param keystore O repositorio de chaves assimetricas do usuario
-     * habilitado no servidor de carimbo de tempo
-     * @param alias O apelido do certificado associado ao repositorio de chaves
+     * @param privateKey
+     * @param certificates
      * @param digestAlgorithm O algoritmo a ser utilizado para gerar o hash do
      * documento
      * @return Uma requisicao de carimbo de tempo
      * @throws TimestampException
      * @throws IOException
      */
-    public byte[] createRequest(byte[] original, KeyStore keystore, String alias, DigestAlgorithmEnum digestAlgorithm) throws TimestampException, IOException {
+    public byte[] createRequest(byte[] original, PrivateKey privateKey, Certificate[] certificates, DigestAlgorithmEnum digestAlgorithm) throws TimestampException, IOException {
         logger.log(Level.INFO, "Gerando o digest do conteudo");
         Digest digest = DigestFactory.getInstance().factoryDefault();
         digest.setAlgorithm(digestAlgorithm);
@@ -80,8 +80,7 @@ public class TimestampGenerator {
 
         logger.info("Efetuando a  assinatura do conteudo");
         RequestSigner requestSigner = new RequestSigner();
-        byte[] signedRequest = requestSigner.signRequest(keystore, alias, null, request);
-
+        byte[] signedRequest = requestSigner.signRequest(privateKey, certificates, request);
         return signedRequest;
     }
 
