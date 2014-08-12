@@ -9,8 +9,6 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.tsp.TimeStampResp;
@@ -18,10 +16,12 @@ import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CarimbadorTeste {
 
-    private final static Logger logger = Logger.getLogger(CarimbadorTeste.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CarimbadorTeste.class);
 
     public static void main(String[] args) {
         new CarimbadorTeste().carimbar();
@@ -62,64 +62,64 @@ public class CarimbadorTeste {
             if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 throw new IOException("Received HTTP error: " + con.getResponseCode() + " - " + con.getResponseMessage());
             } else {
-                logger.log(Level.INFO, "Response Code: ".concat(Integer.toString(con.getResponseCode())));
+                logger.info("Response Code: ".concat(Integer.toString(con.getResponseCode())));
             }
             InputStream in = con.getInputStream();
             TimeStampResp resp = TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
             TimeStampResponse response = new TimeStampResponse(resp);
             response.validate(timeStampRequest);
 
-            logger.log(Level.INFO, "Status = {0}", response.getStatusString());
+            logger.info("Status = {}", response.getStatusString());
 
             if (response.getFailInfo()
                     != null) {
 
                 switch (response.getFailInfo().intValue()) {
                     case 0: {
-                        logger.log(Level.INFO, "unrecognized or unsupported Algorithm Identifier");
+                        logger.info("unrecognized or unsupported Algorithm Identifier");
                         return;
                     }
 
                     case 2: {
-                        logger.log(Level.INFO, "transaction not permitted or supported");
+                        logger.info("transaction not permitted or supported");
                         return;
                     }
 
                     case 5: {
-                        logger.log(Level.INFO, "the data submitted has the wrong format");
+                        logger.info("the data submitted has the wrong format");
                         return;
                     }
 
                     case 14: {
-                        logger.log(Level.INFO, "the TSA’s time source is not available");
+                        logger.info("the TSA’s time source is not available");
                         return;
                     }
 
                     case 15: {
-                        logger.log(Level.INFO, "the requested TSA policy is not supported by the TSA");
+                        logger.info("the requested TSA policy is not supported by the TSA");
                         return;
                     }
                     case 16: {
-                        logger.log(Level.INFO, "the requested extension is not supported by the TSA");
+                        logger.info("the requested extension is not supported by the TSA");
                         return;
                     }
 
                     case 17: {
-                        logger.log(Level.INFO, "the additional information requested could not be understood or is not available");
+                        logger.info("the additional information requested could not be understood or is not available");
                         return;
                     }
 
                     case 25: {
-                        logger.log(Level.INFO, "the request cannot be handled due to system failure");
+                        logger.info("the request cannot be handled due to system failure");
                         return;
                     }
                 }
             }
 
-            logger.log(Level.INFO, "Timestamp: {0}", response.getTimeStampToken().getTimeStampInfo().getGenTime());
-            logger.log(Level.INFO, "TSA: {0}", response.getTimeStampToken().getTimeStampInfo().getTsa());
-            logger.log(Level.INFO, "Serial number: {0}", response.getTimeStampToken().getTimeStampInfo().getSerialNumber());
-            logger.log(Level.INFO, "Policy: {0}", response.getTimeStampToken().getTimeStampInfo().getPolicy());
+            logger.info("Timestamp...........: {}", response.getTimeStampToken().getTimeStampInfo().getGenTime());
+            logger.info("TSA.................: {}", response.getTimeStampToken().getTimeStampInfo().getTsa());
+            logger.info("Serial number.......: {}", response.getTimeStampToken().getTimeStampInfo().getSerialNumber());
+            logger.info("Policy..............: {}", response.getTimeStampToken().getTimeStampInfo().getPolicy());
         } catch (Exception e) {
             e.printStackTrace();
         }

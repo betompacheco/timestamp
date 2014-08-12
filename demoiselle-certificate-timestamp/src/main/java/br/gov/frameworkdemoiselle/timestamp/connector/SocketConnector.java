@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -18,7 +18,8 @@ import java.util.logging.Logger;
  */
 public class SocketConnector implements Connector {
 
-    private final static Logger logger = Logger.getLogger(SocketConnector.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SocketConnector.class);
+
     private String hostname = "";
     private int port;
     OutputStream out = null;
@@ -30,7 +31,7 @@ public class SocketConnector implements Connector {
             logger.info("Envia a solicitacao para o servidor TSA");
             socket = new Socket(hostname, port);
 
-            logger.log(Level.INFO, "Conectado? {0}", socket.isConnected());
+            logger.info("Conectado? {}", socket.isConnected());
 
             logger.info("Escrevendo no socket");
             // A "direct TCP-based TSA message" consists of:length (32-bits), flag (8-bits), value
@@ -64,7 +65,7 @@ public class SocketConnector implements Connector {
             socket.close();
             out.close();
         } catch (IOException ex) {
-            Logger.getLogger(SocketConnector.class.getName()).log(Level.SEVERE, null, ex);
+            logger.info(ex.getMessage());
         }
 
     }

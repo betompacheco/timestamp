@@ -8,8 +8,6 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.CMSProcessableByteArray;
@@ -21,6 +19,8 @@ import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoGeneratorBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.Store;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -28,7 +28,7 @@ import org.bouncycastle.util.Store;
  */
 public class RequestSigner {
 
-    private final static Logger logger = Logger.getLogger(RequestSigner.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RequestSigner.class);
 
     /**
      * Realiza a assinatura de uma requisicao de carimbo de tempo
@@ -40,7 +40,7 @@ public class RequestSigner {
      */
     public byte[] signRequest(PrivateKey privateKey, Certificate[] certificates, byte[] request) {
         try {
-            logger.log(Level.INFO, "Efetuando a assinatura da requisicao");
+            logger.info("Efetuando a assinatura da requisicao");
             Security.addProvider(new BouncyCastleProvider());
 
             X509Certificate signCert = (X509Certificate) certificates[0];
@@ -63,7 +63,7 @@ public class RequestSigner {
             return signed.getEncoded();
 
         } catch (CMSException | IOException | OperatorCreationException | CertificateEncodingException ex) {
-            logger.log(Level.INFO, ex.getMessage());
+            logger.info(ex.getMessage());
         }
         return null;
     }

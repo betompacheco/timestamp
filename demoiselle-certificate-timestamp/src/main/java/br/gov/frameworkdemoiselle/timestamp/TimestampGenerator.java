@@ -20,8 +20,6 @@ import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.CMSException;
@@ -39,6 +37,8 @@ import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -46,7 +46,8 @@ import org.bouncycastle.util.encoders.Base64;
  */
 public class TimestampGenerator {
 
-    private final static Logger logger = Logger.getLogger(TimestampGenerator.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(TimestampGenerator.class);
+
     private InputStream inputStream = null;
     private Timestamp timestamp;
     private TimeStampRequest timeStampRequest;
@@ -65,13 +66,13 @@ public class TimestampGenerator {
      * @throws IOException
      */
     public byte[] createRequest(byte[] original, PrivateKey privateKey, Certificate[] certificates, DigestAlgorithmEnum digestAlgorithm) throws TimestampException, IOException {
-        logger.log(Level.INFO, "Gerando o digest do conteudo");
+        logger.info("Gerando o digest do conteudo");
         Digest digest = DigestFactory.getInstance().factoryDefault();
         digest.setAlgorithm(digestAlgorithm);
         byte[] hashedMessage = digest.digest(original);
-        logger.log(Level.INFO, Base64.toBase64String(hashedMessage));
+        logger.info(Base64.toBase64String(hashedMessage));
 
-        logger.log(Level.INFO, "Montando a requisicao para o carimbador de tempo");
+        logger.info("Montando a requisicao para o carimbador de tempo");
         TimeStampRequestGenerator timeStampRequestGenerator = new TimeStampRequestGenerator();
         timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2"));
         timeStampRequestGenerator.setCertReq(true);
@@ -96,7 +97,7 @@ public class TimestampGenerator {
      */
     public byte[] doTimestamp(byte[] request, ConnectionType connectionType) throws TimestampException {
         try {
-            logger.log(Level.INFO, "Iniciando pedido de carimbo de tempo");
+            logger.info("Iniciando pedido de carimbo de tempo");
             Connector connector = ConnectorFactory.buildConnector(connectionType);
             connector.setHostname("act.serpro.gov.br");
             connector.setPort(318);
@@ -131,10 +132,10 @@ public class TimestampGenerator {
                     }
                 }
                 if (System.currentTimeMillis() >= tempo) {
-                    System.out.println("Erro timeout ao receber dados");
+                    logger.error("Erro timeout ao receber dados");
                 }
             } else {
-                System.out.println("Erro timeout ao receber dados");
+                logger.error("Erro timeout ao receber dados");
             }
 
             // Lendo flag
@@ -148,30 +149,30 @@ public class TimestampGenerator {
             inputStream.read(carimboRetorno, 0, tamanho);
             timeStampResponse = new TimeStampResponse(carimboRetorno);
 
-            logger.log(Level.INFO, "PKIStatus = {0}", timeStampResponse.getStatus());
+            logger.info("PKIStatus....: {}", timeStampResponse.getStatus());
 
             switch (timeStampResponse.getStatus()) {
                 case 0: {
-                    logger.log(Level.INFO, PKIStatus.granted.getMessage());
+                    logger.info(PKIStatus.granted.getMessage());
                     break;
                 }
                 case 1: {
-                    logger.log(Level.INFO, PKIStatus.grantedWithMods.getMessage());
+                    logger.info(PKIStatus.grantedWithMods.getMessage());
                 }
                 case 2: {
-                    logger.log(Level.INFO, PKIStatus.rejection.getMessage());
+                    logger.info(PKIStatus.rejection.getMessage());
                     throw new TimestampException(PKIStatus.rejection.getMessage());
                 }
                 case 3: {
-                    logger.log(Level.INFO, PKIStatus.waiting.getMessage());
+                    logger.info(PKIStatus.waiting.getMessage());
                     throw new TimestampException(PKIStatus.waiting.getMessage());
                 }
                 case 4: {
-                    logger.log(Level.INFO, PKIStatus.revocationWarning.getMessage());
+                    logger.info(PKIStatus.revocationWarning.getMessage());
                     throw new TimestampException(PKIStatus.revocationWarning.getMessage());
                 }
                 case 5: {
-                    logger.log(Level.INFO, PKIStatus.revocationNotification.getMessage());
+                    logger.info(PKIStatus.revocationNotification.getMessage());
                     throw new TimestampException(PKIStatus.revocationNotification.getMessage());
                 }
             }
@@ -182,32 +183,32 @@ public class TimestampGenerator {
                 failInfo = Integer.parseInt(new String(timeStampResponse.getFailInfo().getBytes()));
             }
 
-            logger.log(Level.INFO, "FailInfo = {0}", failInfo);
+            logger.info("FailInfo....: {}", failInfo);
 
             switch (failInfo) {
                 case 0:
-                    logger.log(Level.INFO, PKIFailureInfo.badAlg.getMessage());
+                    logger.info(PKIFailureInfo.badAlg.getMessage());
                     break;
                 case 2:
-                    logger.log(Level.INFO, PKIFailureInfo.badRequest.getMessage());
+                    logger.info(PKIFailureInfo.badRequest.getMessage());
                     break;
                 case 5:
-                    logger.log(Level.INFO, PKIFailureInfo.badDataFormat.getMessage());
+                    logger.info(PKIFailureInfo.badDataFormat.getMessage());
                     break;
                 case 14:
-                    logger.log(Level.INFO, PKIFailureInfo.timeNotAvailable.getMessage());
+                    logger.info(PKIFailureInfo.timeNotAvailable.getMessage());
                     break;
                 case 15:
-                    logger.log(Level.INFO, PKIFailureInfo.unacceptedPolicy.getMessage());
+                    logger.info(PKIFailureInfo.unacceptedPolicy.getMessage());
                     break;
                 case 16:
-                    logger.log(Level.INFO, PKIFailureInfo.unacceptedExtension.getMessage());
+                    logger.info(PKIFailureInfo.unacceptedExtension.getMessage());
                     break;
                 case 17:
-                    logger.log(Level.INFO, PKIFailureInfo.addInfoNotAvailable.getMessage());
+                    logger.info(PKIFailureInfo.addInfoNotAvailable.getMessage());
                     break;
                 case 25:
-                    logger.log(Level.INFO, PKIFailureInfo.systemFailure.getMessage());
+                    logger.info(PKIFailureInfo.systemFailure.getMessage());
                     break;
             }
 
@@ -222,8 +223,8 @@ public class TimestampGenerator {
             connector.close();
             return carimboRetorno;
 
-        } catch (Exception e) {
-            throw new TimestampException(e.getMessage(), e.getCause());
+        } catch (TimestampException | IOException | NumberFormatException | TSPException e) {
+            throw new TimestampException(e.getMessage());
         }
     }
 
@@ -259,18 +260,10 @@ public class TimestampGenerator {
                 cert.getExtension(new ASN1ObjectIdentifier("2.5.29.31")).getExtnValue();
             }
 
-            logger.log(Level.INFO, "Assinaturas Verificadas : {0}", verified);
+            logger.info("Assinaturas Verificadas....: {}", verified);
             this.timestamp = new Timestamp(timeStampToken);
-        } catch (TSPException ex) {
-            throw new TimestampException(ex.getMessage(), ex.getCause());
-        } catch (IOException ex) {
-            throw new TimestampException(ex.getMessage(), ex.getCause());
-        } catch (CMSException ex) {
-            throw new TimestampException(ex.getMessage(), ex.getCause());
-        } catch (OperatorCreationException ex) {
-            throw new TimestampException(ex.getMessage(), ex.getCause());
-        } catch (CertificateException ex) {
-            throw new TimestampException(ex.getMessage(), ex.getCause());
+        } catch (TSPException | IOException | CMSException | OperatorCreationException | CertificateException ex) {
+            throw new TimestampException(ex.getMessage());
         }
     }
 
@@ -291,7 +284,7 @@ public class TimestampGenerator {
         digest.digest(original);
 
         if (Arrays.equals(digest.digest(original), this.timestamp.getMessageImprintDigest())) {
-            logger.log(Level.INFO, "Digest do documento conferido com sucesso.");
+            logger.info("Digest do documento conferido com sucesso.");
         } else {
             throw new TimestampException("O documento fornecido nao corresponde ao do carimbo de tempo!");
         }

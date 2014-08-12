@@ -1,29 +1,29 @@
 package br.gov.frameworkdemoiselle.timestamp.connector;
 
 import br.gov.frameworkdemoiselle.timestamp.enumeration.ConnectionType;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConnectorFactory {
 
-    private final static Logger logger = Logger.getLogger(ConnectorFactory.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(ConnectorFactory.class);
 
     public static Connector buildConnector(ConnectionType connectionType) {
 
         switch (connectionType) {
 
             case HTTP: {
-                logger.log(Level.INFO, "Retornando a conexao HTTP da fabrica");
+                logger.info("Retornando a conexao HTTP da fabrica");
                 return new HttpConnector();
             }
 
             case SOCKET: {
-                logger.log(Level.INFO, "Retornando a conexao Socket da fabrica");
+                logger.info("Retornando a conexao Socket da fabrica");
                 return new SocketConnector();
             }
 
             default: {
-                logger.log(Level.INFO, "Retornando a conexao padrao da fábrica");
+                logger.info("Retornando a conexao padrao da fábrica");
                 return new SocketConnector();
             }
         }

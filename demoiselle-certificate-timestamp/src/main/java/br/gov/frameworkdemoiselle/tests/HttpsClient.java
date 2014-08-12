@@ -14,8 +14,6 @@ import java.security.KeyStore;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.Certificate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -30,6 +28,8 @@ import org.bouncycastle.tsp.TSPAlgorithms;
 import org.bouncycastle.tsp.TimeStampRequest;
 import org.bouncycastle.tsp.TimeStampRequestGenerator;
 import org.bouncycastle.tsp.TimeStampResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HttpsClient {
 
@@ -38,7 +38,7 @@ public class HttpsClient {
      * Porta da ACT Serpro = 318
      * OID da Politica da ACT Serpro = 2.16.76.1.6.2
      */
-    private final static Logger logger = Logger.getLogger(HttpsClient.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(HttpsClient.class);
 
     public static void main(String[] args) {
         new HttpsClient().stamp();
@@ -57,7 +57,7 @@ public class HttpsClient {
         try {
 
 //            String serverAddress = JOptionPane.showInputDialog("Enter IP Address of a machine that is\n" + "running the date service on port 9090:");
-            logger.log(Level.INFO, "Iniciando pedido de carimbo de tempo");
+            logger.info("Iniciando pedido de carimbo de tempo");
             /*----------------------------------------------------------------------------------*/
             String CLIENT_PASSWORD = "G4bizinh4";
             String TRUSTSTORE_PASSWORD = "changeit";
@@ -91,21 +91,21 @@ public class HttpsClient {
 //            sslContext.init(null, null, null);
             SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
             SSLSocket socket = (SSLSocket) sslSocketFactory.createSocket(hostname, port);
-            logger.log(Level.INFO, "Creating a SSL Socket For {0} on port {1}", new Object[]{hostname, port});
+            logger.info("Creating a SSL Socket For {} on port {}", new Object[]{hostname, port});
 
             socket.startHandshake();
-            logger.log(Level.INFO, "Handshaking Complete");
+            logger.info("Handshaking Complete");
             socket.close();
             /*----------------------------------------------------------------------------------*/
 
-            logger.log(Level.INFO, "Montando a requisicao para o carimbador de tempo");
+            logger.info("Montando a requisicao para o carimbador de tempo");
             TimeStampRequestGenerator timeStampRequestGenerator = new TimeStampRequestGenerator();
 //            reqgen.setReqPolicy(new ASN1ObjectIdentifier("1.3.6.1.4.1.13762.3"));
             timeStampRequestGenerator.setReqPolicy(new ASN1ObjectIdentifier("2.16.76.1.6.2"));
             TimeStampRequest timeStampRequest = timeStampRequestGenerator.generate(TSPAlgorithms.SHA256, new byte[20], BigInteger.valueOf(100));
             byte request[] = timeStampRequest.getEncoded();
 
-            logger.log(Level.INFO, "Acessando o CSP {0}", ocspUrl);
+            logger.info("Acessando o CSP {}", ocspUrl);
 
             URL url = new URL(ocspUrl);
 
@@ -133,68 +133,64 @@ public class HttpsClient {
             if (con.getResponseCode() != HttpURLConnection.HTTP_OK) {
                 throw new IOException("Received HTTP error: " + con.getResponseCode() + " - " + con.getResponseMessage());
             } else {
-                logger.log(Level.INFO, "Response Code: ".concat(Integer.toString(con.getResponseCode())));
+                logger.info("Response Code: ".concat(Integer.toString(con.getResponseCode())));
             }
             InputStream in = con.getInputStream();
             TimeStampResp resp = TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
             TimeStampResponse response = new TimeStampResponse(resp);
             response.validate(timeStampRequest);
 
-            logger.log(Level.INFO, "Status = {0}", response.getStatusString());
+            logger.info("Status = {}", response.getStatusString());
 
             if (response.getFailInfo()
                     != null) {
 
                 switch (response.getFailInfo().intValue()) {
                     case 0: {
-                        logger.log(Level.INFO, "unrecognized or unsupported Algorithm Identifier");
+                        logger.info("unrecognized or unsupported Algorithm Identifier");
                         return;
                     }
 
                     case 2: {
-                        logger.log(Level.INFO, "transaction not permitted or supported");
+                        logger.info("transaction not permitted or supported");
                         return;
                     }
 
                     case 5: {
-                        logger.log(Level.INFO, "the data submitted has the wrong format");
+                        logger.info("the data submitted has the wrong format");
                         return;
                     }
 
                     case 14: {
-                        logger.log(Level.INFO, "the TSA’s time source is not available");
+                        logger.info("the TSA’s time source is not available");
                         return;
                     }
 
                     case 15: {
-                        logger.log(Level.INFO, "the requested TSA policy is not supported by the TSA");
+                        logger.info("the requested TSA policy is not supported by the TSA");
                         return;
                     }
                     case 16: {
-                        logger.log(Level.INFO, "the requested extension is not supported by the TSA");
+                        logger.info("the requested extension is not supported by the TSA");
                         return;
                     }
 
                     case 17: {
-                        logger.log(Level.INFO, "the additional information requested could not be understood or is not available");
+                        logger.info("the additional information requested could not be understood or is not available");
                         return;
                     }
 
                     case 25: {
-                        logger.log(Level.INFO, "the request cannot be handled due to system failure");
+                        logger.info("the request cannot be handled due to system failure");
                         return;
                     }
                 }
             }
 
-            logger.log(Level.INFO,
-                    "Timestamp: {0}", response.getTimeStampToken().getTimeStampInfo().getGenTime());
-            logger.log(Level.INFO,
-                    "TSA: {0}", response.getTimeStampToken().getTimeStampInfo().getTsa());
-            logger.log(Level.INFO,
-                    "Serial number: {0}", response.getTimeStampToken().getTimeStampInfo().getSerialNumber());
-            logger.log(Level.INFO,
-                    "Policy: {0}", response.getTimeStampToken().getTimeStampInfo().getPolicy());
+            logger.info("Timestamp...............: {}", response.getTimeStampToken().getTimeStampInfo().getGenTime());
+            logger.info("TSA.....................: {}", response.getTimeStampToken().getTimeStampInfo().getTsa());
+            logger.info("Serial number...........: {}", response.getTimeStampToken().getTimeStampInfo().getSerialNumber());
+            logger.info("Policy..................: {}", response.getTimeStampToken().getTimeStampInfo().getPolicy());
         } catch (IOException e) {
             e.printStackTrace();
         } catch (Exception e) {
@@ -208,17 +204,17 @@ public class HttpsClient {
         if (con != null) {
 
             try {
-                logger.log(Level.INFO, "Response Code : {0}", con.getResponseCode());
-                logger.log(Level.INFO, "Cipher Suite : {0}", con.getCipherSuite());
-                logger.log(Level.INFO, "\n");
+                logger.info("Response Code....: {}", con.getResponseCode());
+                logger.info("Cipher Suite.....: {}", con.getCipherSuite());
+                logger.info("\n");
 
                 Certificate[] certs = con.getServerCertificates();
                 for (Certificate cert : certs) {
-                    logger.log(Level.INFO, "Cert Type : {0}", cert.getType());
-                    logger.log(Level.INFO, "Cert Hash Code : {0}", cert.hashCode());
-                    logger.log(Level.INFO, "Cert Public Key Algorithm : {0}", cert.getPublicKey().getAlgorithm());
-                    logger.log(Level.INFO, "Cert Public Key Format : {0}", cert.getPublicKey().getFormat());
-                    logger.log(Level.INFO, "\n");
+                    logger.info("Cert Type..................: {}", cert.getType());
+                    logger.info("Cert Hash Code.............: {}", cert.hashCode());
+                    logger.info("Cert Public Key Algorithm..: {}", cert.getPublicKey().getAlgorithm());
+                    logger.info("Cert Public Key Format.....: {}", cert.getPublicKey().getFormat());
+                    logger.info("\n");
                 }
 
             } catch (SSLPeerUnverifiedException e) {
@@ -236,13 +232,13 @@ public class HttpsClient {
 
             try {
 
-                logger.log(Level.INFO, "****** Content of the URL ********");
+                logger.info("****** Content of the URL ********");
                 BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
 
                 String input;
 
                 while ((input = br.readLine()) != null) {
-                    logger.log(Level.INFO, input);
+                    logger.info(input);
                 }
                 br.close();
 

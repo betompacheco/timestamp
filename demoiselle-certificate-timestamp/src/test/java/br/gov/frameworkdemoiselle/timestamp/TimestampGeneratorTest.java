@@ -14,9 +14,9 @@ import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.Security;
 import java.security.cert.Certificate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import junit.framework.TestCase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -24,7 +24,8 @@ import junit.framework.TestCase;
  */
 public class TimestampGeneratorTest extends TestCase {
 
-    private final static Logger logger = Logger.getLogger(TimestampGeneratorTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(TimestampGeneratorTest.class);
+
     byte[] original = null;
     byte[] response = null;
 
@@ -69,9 +70,9 @@ public class TimestampGeneratorTest extends TestCase {
 
         timestampGen.validate(response, original);
 
-        logger.log(Level.INFO, "Imprimindo os dados do TimeStamp Response");
+        logger.info("Imprimindo os dados do TimeStamp Response");
 
-        logger.log(Level.INFO, timestampGen.getTimestamp().toString());
+        logger.info(timestampGen.getTimestamp().toString());
     }
 
     @Override

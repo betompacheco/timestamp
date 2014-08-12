@@ -4,11 +4,12 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.logging.Logger;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -16,7 +17,8 @@ import org.bouncycastle.util.encoders.Hex;
  */
 public class Timestamp {
 
-    private final static Logger logger = Logger.getLogger(Timestamp.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Timestamp.class);
+
     private TimeStampToken timeStampToken = null;
 
     Timestamp(TimeStampToken timeStampToken) {
@@ -90,13 +92,13 @@ public class Timestamp {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder(0);
-        builder.append("Data / hora : ").append(this.getCarimbodeTempo()).append("\n");
-        builder.append("Politica : ").append(this.getPolitica()).append("\n");
-        builder.append("Serial : ").append(this.getNumeroSerie()).append("\n");
-        builder.append("Certificado TSA : ").append(this.getAutoridadeCarimboTempo()).append("\n");
-        builder.append("Hash Algorithm : ").append(this.getAlgoritmoDoHash()).append("\n");
-        builder.append("Message Imprint Digest (Hex) : ").append(this.getMessageImprintDigestHex()).append("\n");
-        builder.append("Message Imprint Digest (Base64) : ").append(this.getMessageImprintDigestBase64()).append("\n");
+        builder.append("Data / hora......................: ").append(this.getCarimbodeTempo()).append("\n");
+        builder.append("Politica.........................: ").append(this.getPolitica()).append("\n");
+        builder.append("Numero de serie..................: ").append(this.getNumeroSerie()).append("\n");
+        builder.append("Certificado TSA..................: ").append(this.getAutoridadeCarimboTempo()).append("\n");
+        builder.append("Hash Algorithm...................: ").append(this.getAlgoritmoDoHash()).append("\n");
+        builder.append("Message Imprint Digest (Hex).... : ").append(this.getMessageImprintDigestHex()).append("\n");
+        builder.append("Message Imprint Digest (Base64)..: ").append(this.getMessageImprintDigestBase64()).append("\n");
         return builder.toString();
     }
 }
